@@ -110,8 +110,8 @@ void TVector::Print(ofstream& o) const {
 
 void TVector::Print(ofstream& o, const string& str) const {
     o << "Vector " + str + " = (";
-    for (int i = 0; i < _szRow; ++i) {
-        o << _vec[0][i] << (i == _szRow - 1 ? "" : ", ");
+    for (int i = 0; i < _szCol; ++i) {
+        o << _vec[0][i] << (i == _szCol - 1 ? "" : ", ");
     }
     o << ")" << endl << endl;
 }

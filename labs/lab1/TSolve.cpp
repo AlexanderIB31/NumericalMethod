@@ -33,7 +33,6 @@ TFRFF* TSolve::_readFromFile(const string& path, TypeProblem tP) {
 
 void TSolve::_writeToFile(const string& path) {
     output.open(path.c_str(), ofstream::out);
-    output.precision(3);
     _matrA.Print(output, "A");
     _vecB.Print(output, "B");
     _vecX.Print(output, "X");
@@ -80,26 +79,32 @@ void TSolve::_findSolve(double P, double Q, int n, TVector& x, ofstream& log) {
         log << "P_" << n << " = " << 0 << endl;
         log << "Q_" << n << " = " << Q << endl;
     } else {
-        _findSolve(-_matrA[n][n + 1] / (_matrA[n][n - 1] * P + _matrA[n][n]),
-                    (_vecB[n] - _matrA[n][n - 1] * Q) / (_matrA[n][n - 1] * P + _matrA[n][n]),
-                    n + 1, x, log);
-        log << "P_" << n << " = " << P << endl;
-        log << "Q_" << n << " = " << Q << endl;
-        x[n - 1] = P * x[n] + Q;           
+        try {
+//            _findSolve(-_matrA[n][n + 1] / (_matrA[n][n - 1] * P + _matrA[n][n]),
+//                        (_vecB[n] - _matrA[n][n - 1] * Q) / (_matrA[n][n - 1] * P 
+//                            + _matrA[n][n]),
+//                        n + 1, x, log);
+            _findSolve(-_matrA[n][2] / (_matrA[n][0] * P + _matrA[n][1]),
+                        (_vecB[n] - _matrA[n][0] * Q) / (_matrA[n][0] * P + _matrA[n][1]),
+                        n + 1, x, log);
+            log << "P_" << n << " = " << P << endl;
+            log << "Q_" << n << " = " << Q << endl;
+            x[n - 1] = P * x[n] + Q;           
+        }
+        catch (const out_of_range& e) {
+            cerr << e.what() << endl;
+        }
     }        
 }
 
 TSolve::TSolve(const string& pFrom, const string& pTo) {
     pathFrom = pFrom;
     pathTo = pTo;
-//    out.open(pathTo.c_str(), ofstream::out);
-//    in.open(pathFrom.c_str(), ifstream::in);	
-//	out.precision(3);
+    output.precision(3);
+    log.precision(3);
 }
 
 int TSolve::ToSolveBySimpleIterations() {
-    //_matrA.SetLink(TMatrix(in, _vecB, SimpleIter));
-    //in.close();
     TFRFF* tmpRead = _readFromFile(pathFrom, SimpleIter);
     _matrA.SetLink(tmpRead->matr);
     _vecB.SetLink(tmpRead->vec);
@@ -134,17 +139,9 @@ int TSolve::ToSolveBySimpleIterations() {
     _writeToFile(pathTo);
     _clear();   
     return 0;
-//    _matrA.Clear();
-//    _vecX.Clear();
-//    _vecB.Clear();
-//    vecRes.Clear();    
-//    out.close();
-//    log.close();
 } 
 
 int TSolve::ToSolveByZeydel() {    
-    //_matrA.SetLink(TMatrix(in, _vecB, Zeydel));
-    //in.close();
     TFRFF* tmpRead = _readFromFile(pathFrom, Zeydel);
     _matrA.SetLink(tmpRead->matr);
     _vecB.SetLink(tmpRead->vec);
@@ -191,25 +188,14 @@ int TSolve::ToSolveByZeydel() {
         eps_k = tmp1 / (1.0 - tmp2) * (curVec - _vecX).GetNorm();
         log << "eps(" << i << ") = " << eps_k << endl;
     }    
-    //for (int i = 0; i < curVec.GetSize(); ++i) {
-    //    out << curVec[i] << endl;
-    //}
     _vecX = curVec;
     curVec.Clear();    
     _writeToFile(pathTo);
     _clear();
     return 0;
-//    _matrA.Clear();
-//    _vecX.Clear();
-//    _vecB.Clear();
-//    curVec.Clear();    
-//    out.close();
-//    log.close();
 } 
 
 int TSolve::ToSolveByGauss() {                 
-    //_matrA.SetLink(TMatrix(in, _vecB, Gauss));
-    //in.close();            
     TFRFF* tmpRead = _readFromFile(pathFrom, Gauss);
     _matrA.SetLink(tmpRead->matr);
     _vecB.SetLink(tmpRead->vec);
@@ -245,10 +231,6 @@ int TSolve::ToSolveByGauss() {
         posPrecc = posMax;
     }
 
-	//_matrA.Print();
-	//cout << endl;
-	//(L * U).Print();
-
     _vecX.SetLink(_solveAx_is_b(L, U, _vecB));	    
     L.Print(log, "L");
     U.Print(log, "U");    
@@ -271,24 +253,15 @@ int TSolve::ToSolveByGauss() {
     reverseA.Print(output, "A^(-1)");          
     TMatrix check(_matrA * reverseA);
     check.Print(log, "A * A^(-1)");    
-    //_vecX.Print(out, "X");	    
-   
-    //_matrA.Clear();
-    //_vecX.Clear();
-    //_vecB.Clear();
     L.Clear();
     U.Clear();
     reverseA.Clear();
     check.Clear();
     _clear();
     return 0;
-    //log.close();
-    //out.close();
 }
 
 int TSolve::ToSolveByTripleDiagMatrix() {
-    //_matrA.SetLink(TMatrix(in, _vecB, Gauss));
-    //in.close();        
     TFRFF* tmpRead = _readFromFile(pathFrom, TripleDiagMatrix);
     _matrA.SetLink(tmpRead->matr);
     _vecB.SetLink(tmpRead->vec);
@@ -304,13 +277,7 @@ int TSolve::ToSolveByTripleDiagMatrix() {
     }
     _vecX = _vecB;    
     _findSolve(P, Q, 1, _vecX, log);        
-    //_vecX.Print(out, "X");    
     _writeToFile(pathTo);
     _clear();
     return 0;
-    //log.close();
-    //out.close();    
-    //_vecX.Clear();
-    //_matrA.Clear();
-    //_vecB.Clear();
 }
