@@ -22,3 +22,10 @@ public:
         return "Matrix are incompable";
     }
 };
+
+class bad_file_name : public exception {
+public:
+    virtual const char* what() const throw() {
+        return "File was not found";
+    }
+};

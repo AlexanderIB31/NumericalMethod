@@ -17,11 +17,8 @@ TVector.o: TVector.cpp
 TMatrix.o: TMatrix.cpp
 	$(CC) $(CFLAGS) $<
 
-#TCommonClass.o: TCommonClass.cpp
-#	$(CC) $(CFLAGS) $<
-
 func.o: func.cpp
 	$(CC) $(CFLAGS) $<
 
 clean:
-	rm -rf *.o *~ solve
+	rm -rf *.o *~ solve *.log result

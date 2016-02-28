@@ -1,16 +1,20 @@
 #include "TSolve.h"
 
 TFRFF* TSolve::_readFromFile(const string& path, TypeProblem tP) {
-    in.open(path, ios::in);
-    int tmpSz;
-    in >> tmpSz;
-    TMatrix matr(tmpSz, tP == TripleDiagMatrix ? 3 : tmpSz, Zero);
+    input.open(path.c_str(), ifstream::in);
+    if (!input.is_open()) {
+        cerr << "Incorrect file name" << endl;
+        return 0; 
+    }
+    int tmpSz = -1;
+    input >> tmpSz;
+    TMatrix matr(tmpSz, (tP == TripleDiagMatrix ? 3 : tmpSz), Zero);
     TVector vec(tmpSz);
     for (int i = 0; i < tmpSz; ++i) {
         for (int j = 0; j < matr.GetSizeCol(); ++j) {
-            in >> matr[i][j];
+            input >> matr[i][j];
         }
-        in >> vec[i];
+        input >> vec[i];
     }
     if (tP == Zeydel || tP == SimpleIter) {
         for (int i = 0; i < tmpSz; ++i) {
@@ -28,18 +32,19 @@ TFRFF* TSolve::_readFromFile(const string& path, TypeProblem tP) {
 }
 
 void TSolve::_writeToFile(const string& path) {
-    out.open(path, ios::out);
-    _matrA.Print(out, "A");
-    _vecB.Print(out, "B");
-    _vecX.Print(out, "X");
+    output.open(path.c_str(), ofstream::out);
+    output.precision(3);
+    _matrA.Print(output, "A");
+    _vecB.Print(output, "B");
+    _vecX.Print(output, "X");
 }
 
 void TSolve::_clear() {
     _matrA.Clear();
     _vecB.Clear();
     _vecX.Clear();
-    in.close();
-    out.close();
+    input.close();
+    output.close();
     log.close();
 }
 
@@ -84,10 +89,12 @@ void TSolve::_findSolve(double P, double Q, int n, TVector& x, ofstream& log) {
     }        
 }
 
-TSolve::TSolve(const string& pathFrom, const string& pathTo) {
-    out.open(pathTo.c_str(), ios::out);
-    in.open(pathFrom.c_str(), ios::in);	
-	out.precision(3);
+TSolve::TSolve(const string& pFrom, const string& pTo) {
+    pathFrom = pFrom;
+    pathTo = pTo;
+//    out.open(pathTo.c_str(), ofstream::out);
+//    in.open(pathFrom.c_str(), ifstream::in);	
+//	out.precision(3);
 }
 
 int TSolve::ToSolveBySimpleIterations() {
@@ -100,7 +107,7 @@ int TSolve::ToSolveBySimpleIterations() {
         cerr << "Error!!!" << endl;
         return 1;
     }
-    log.open("solve1SimpleIter.log", ios::out);
+    log.open("solve1SimpleIter.log", ofstream::out);
     log << "|Method Simple Iterations| by Alexander Bales 80-308" << endl << endl;
     log << "|A| = " << _matrA.GetNorm() << endl << endl;
     _vecX = _vecB;    
@@ -122,7 +129,7 @@ int TSolve::ToSolveBySimpleIterations() {
         log << "eps(" << i << ") = " << eps_k << endl;
     }    
     for (int i = 0; i < vecRes.GetSize(); ++i) {
-        out << vecRes[i] << endl;
+        output << vecRes[i] << endl;
     }
     _writeToFile(pathTo);
     _clear();   
@@ -142,7 +149,7 @@ int TSolve::ToSolveByZeydel() {
     _matrA.SetLink(tmpRead->matr);
     _vecB.SetLink(tmpRead->vec);
     //if (abs(_matrA.GetNorma()) >= 1.0) cout << "Error!!![3]" << endl;
-    log.open("solve1Zeydel.log", ios::out);
+    log.open("solve1Zeydel.log", ofstream::out);
     log << "|Method Zeydel| by Alexander Bales 80-308" << endl << endl;
     //log << "|L| = " << _matrA.GetNorma() << endl;
     _vecX = _vecB;    
@@ -218,7 +225,7 @@ int TSolve::ToSolveByGauss() {
         if (tmpSz - 1 != i) {
             U.SwapRows(posMax, i);            
             _matrA.SwapRows(posMax, i);
-            _vecB.SwapRows(posMax, i); 
+            _vecB.Swap(posMax, i); 
             if (posMax != i)
                 cntSwitchRowsAndColumns++;                
             if (posPrecc != -1) {
@@ -245,11 +252,11 @@ int TSolve::ToSolveByGauss() {
     _vecX.SetLink(_solveAx_is_b(L, U, _vecB));	    
     L.Print(log, "L");
     U.Print(log, "U");    
-    out << "det(A) = ";
+    output << "det(A) = ";
     double detA = 1.0;
     for (int i = 0; i < tmpSz; ++i)
         detA *= U[i][i];
-    out << pow(-1.0, 1.0 * cntSwitchRowsAndColumns) * detA << endl << endl;              
+    output << pow(-1.0, 1.0 * cntSwitchRowsAndColumns) * detA << endl << endl;              
     TMatrix reverseA(_matrA.GetSizeRow(), _matrA.GetSizeCol(), Zero);
     for (int i = 0; i < tmpSz; ++i) {
         TVector vec(_matrA.GetSizeRow());
@@ -261,7 +268,7 @@ int TSolve::ToSolveByGauss() {
         vec.Clear();
     }
     _writeToFile(pathTo); 
-    reverseA.Print(out, "A^(-1)");          
+    reverseA.Print(output, "A^(-1)");          
     TMatrix check(_matrA * reverseA);
     check.Print(log, "A * A^(-1)");    
     //_vecX.Print(out, "X");	    

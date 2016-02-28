@@ -35,6 +35,6 @@ public:
     
     void Clear();    
     void SwapRows(int pos1, int pos2) const;    
-    virtual void SwapColumns(int pos1, int pos2) const;    
+    void SwapColumns(int pos1, int pos2) const;    
 };
 

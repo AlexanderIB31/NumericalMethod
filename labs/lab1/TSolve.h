@@ -18,8 +18,8 @@ private:
     TVector _vecX;
    
     ofstream log;
-    ofstream out;
-    ifstream in;    
+    ofstream output;
+    ifstream input;    
 
     string pathFrom, pathTo;
 

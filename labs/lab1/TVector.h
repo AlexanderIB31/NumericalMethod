@@ -9,9 +9,9 @@ public:
     TVector(const TMatrix& m);
 //    TVector(int sz, double val);
       
-    using TMatrix::operator+;
-    using TMatrix::operator-;
-    using TMatrix::operator=;
+    //using TMatrix::operator+;
+    //using TMatrix::operator-;
+    //using TMatrix::operator=;
     //TVector operator + (const TVector& vec);
     //TVector operator - (const TVector& vec);    
     //TVector& operator= (const TVector& vec);
@@ -19,8 +19,9 @@ public:
     double& operator[] (int pos);
 
     int GetSize() const;
+    void Print() const;
     void Print(ofstream& o) const;
-    void Print(ofstream& o, const string& str) const; 
-    void SwapColumns(int pos1, int pos2) const;
+    virtual void Print(ofstream& o, const string& str) const; 
+    void Swap(int pos1, int pos2) const;
 };
 

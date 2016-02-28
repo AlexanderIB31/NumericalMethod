@@ -62,7 +62,7 @@ TMatrix TMatrix::operator* (const TMatrix& matr) const {
         if (matr.GetSizeRow() != _szCol)
             throw incomp_matrix();
     }
-    catch (const incomp_matrix& e) { // must add class incomp_matrix : public exception
+    catch (const incomp_matrix& e) {
         cerr << e.what() << endl;
         return TMatrix(_szRow, _szCol, Zero);
     }
@@ -74,6 +74,46 @@ TMatrix TMatrix::operator* (const TMatrix& matr) const {
                 tmp += _vec[j][k] * matr[k][i];
             }
             res[j][i] = tmp;
+        }
+    }
+    return res;
+}
+
+TMatrix TMatrix::operator+ (const TMatrix& m) const {
+    try {
+        if (m.GetSizeRow() != _szRow ||
+            m.GetSizeCol() != _szCol)
+            throw incomp_matrix();            
+    }
+    catch (const incomp_matrix& e) {
+        cerr << e.what() << endl;
+        return TMatrix(_szRow, _szCol, Zero);
+    }
+    
+    TMatrix res(m.GetSizeRow(), m.GetSizeCol(), Zero);
+    for (int i = 0; i < _szRow; ++i) {
+        for (int j = 0; j < _szCol; ++j) {
+            res[i][j] = _vec[i][j] + m[i][j];
+        }
+    }
+    return res;
+}
+
+TMatrix TMatrix::operator- (const TMatrix& m) const {
+    try {
+        if (m.GetSizeRow() != _szRow ||
+            m.GetSizeCol() != _szCol)
+            throw incomp_matrix();            
+    }
+    catch (const incomp_matrix& e) {
+        cerr << e.what() << endl;
+        return TMatrix(_szRow, _szCol, Zero);
+    }
+    
+    TMatrix res(m.GetSizeRow(), m.GetSizeCol(), Zero);
+    for (int i = 0; i < _szRow; ++i) {
+        for (int j = 0; j < _szCol; ++j) {
+            res[i][j] = _vec[i][j] - m[i][j];
         }
     }
     return res;
@@ -124,7 +164,7 @@ void TMatrix::Print(ofstream& o, const string& str) const {
 
 int TMatrix::FindPosMaxElemInColumn(int col) const {
     try {
-        if (col < 0)
+        if (col < 0 || col >= _szRow)
             throw out_of_range("Trying access to element out of range");        
     }
     catch (const out_of_range& e) {
@@ -153,7 +193,7 @@ int TMatrix::FindDiagElemIsNotNull(int pos) const {
 void TMatrix::AssignColumn(const TMatrix& vec, int pos) {
     try {
         if (pos < 0 || pos >= _szCol)
-            throw out_of_range("Trying access to element out of range"); 
+            throw out_of_range("Trying swap element out of range[TMatrix]"); 
     }
     catch (const out_of_range e) {
         cerr << "Out of range: " << e.what() << endl;
@@ -169,7 +209,7 @@ void TMatrix::SwapRows(int pos1, int pos2) const {
     try {
         if (pos1 < 0 || pos2 < 0 || 
             pos1 >= _szRow || pos2 >= _szRow)
-            throw out_of_range("Trying access to element out of range"); 
+            throw out_of_range("Trying swap element out of range[TMatrix]"); 
     }
     catch (const out_of_range& e) {
         cerr << "Out of range: " << e.what() << endl;

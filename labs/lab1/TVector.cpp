@@ -1,6 +1,6 @@
 #include "TVector.h"
 
-TVector::TVector() : TMatrix() {}
+TVector::TVector() : TMatrix() { _szRow = 1; }
     
 TVector::TVector(double** v, int sz) : TMatrix(v, sz, 1) { }
 //    TMatrix::TMatrix(v, sz, 1);
@@ -90,13 +90,14 @@ void TVector::SetLink(const TVector& vec) {
     this->_sz = vec.GetSize();     
     this->_vec = vec.GetVec(); 
 }
-
-void TVector::Print() {
-    for (int i = 0; i < this->_sz; ++i) {
-        cout << this->_vec[0][i] << (i == this->_sz - 1 ? "" : ", ");
-    }
+*/
+void TVector::Print() const {
+    TMatrix::Print();
+//    for (int i = 0; i < _szCol; ++i) {
+//        cout << _vec[0][i] << (i == _szCol - 1 ? "" : ", ");
+//    }
 }    
-
+/*
 void TVector::Print(ofstream& o) {
     for (int i = 0; i < this->_sz; ++i) {
         o << this->_vec[0][i] << (i == this->_sz - 1 ? "" : ", ");
@@ -104,7 +105,7 @@ void TVector::Print(ofstream& o) {
 }    
 */
 void TVector::Print(ofstream& o) const {
-    return TMatrix::Print(o);
+    TMatrix::Print(o);
 }
 
 void TVector::Print(ofstream& o, const string& str) const {
@@ -154,10 +155,10 @@ void TVector::SwapRows(int pos1, int pos2) {
     this->_vec[0][pos2] = tmp;
 }
 */
-void TVector::SwapColumns(int pos1, int pos2) const {
+void TVector::Swap(int pos1, int pos2) const {
     try {
-        if (pos1 < 0 || pos2 < 0)
-            throw out_of_range("Trying swap element out of range");
+        if (pos1 < 0 || pos2 < 0 || pos1 >= _szCol || pos1 >= _szCol)
+            throw out_of_range("Trying swap element out of range[TVector]");
     }
     catch (const out_of_range& e) {
         cerr << "Out of range: " << e.what() << endl;
