@@ -137,7 +137,8 @@ int TSolve::ToSolveBySimpleIterations() {
         output << vecRes[i] << endl;
     }
     _writeToFile(pathTo);
-    _clear();   
+    _clear();  
+    delete tmpRead; 
     return 0;
 } 
 
@@ -192,6 +193,7 @@ int TSolve::ToSolveByZeydel() {
     curVec.Clear();    
     _writeToFile(pathTo);
     _clear();
+    delete tmpRead; 
     return 0;
 } 
 
@@ -258,6 +260,7 @@ int TSolve::ToSolveByGauss() {
     reverseA.Clear();
     check.Clear();
     _clear();
+    delete tmpRead; 
     return 0;
 }
 
@@ -279,5 +282,6 @@ int TSolve::ToSolveByTripleDiagMatrix() {
     _findSolve(P, Q, 1, _vecX, log);        
     _writeToFile(pathTo);
     _clear();
+    delete tmpRead; 
     return 0;
 }
