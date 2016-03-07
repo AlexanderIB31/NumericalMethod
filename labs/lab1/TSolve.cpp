@@ -9,26 +9,43 @@ TFRFF* TSolve::_readFromFile(const string& path, TypeProblem tP) {
     int tmpSz = -1;
     input >> tmpSz;
     TMatrix matr(tmpSz, (tP == TripleDiagMatrix ? 3 : tmpSz), Zero);
-    TVector vec(tmpSz);
-    for (int i = 0; i < tmpSz; ++i) {
-        for (int j = 0; j < matr.GetSizeCol(); ++j) {
-            input >> matr[i][j];
+    if (tP == Rotate) {
+         for (int i = 0; i < tmpSz; ++i) {
+            for (int j = 0; j < matr.GetSizeCol(); ++j) 
+                input >> matr[i][j];
         }
-        input >> vec[i];
+        return new TFRFF(matr);
     }
-    if (tP == Zeydel || tP == SimpleIter) {
+    else {
+        TVector vec(tmpSz);
         for (int i = 0; i < tmpSz; ++i) {
-            for (int j = 0; j < tmpSz; ++j)
-                if (i != j)
-                    matr[i][j] /= -1.0 * matr[i][i];
-            vec[i] /= matr[i][i];
-            matr[i][i] = 0.0;
+            for (int j = 0; j < matr.GetSizeCol(); ++j) {
+                input >> matr[i][j];
+            }
+            input >> vec[i];
         }
+        if (tP == Zeydel || tP == SimpleIter) {
+            for (int i = 0; i < tmpSz; ++i) {
+                for (int j = 0; j < tmpSz; ++j)
+                    if (i != j)
+                        matr[i][j] /= -1.0 * matr[i][i];
+                vec[i] /= matr[i][i];
+                matr[i][i] = 0.0;
+            }
+        }
+        else if (tP != Gauss && tP != TripleDiagMatrix) {
+            cerr << "This type of problem was not found!" << endl;
+        }
+        return new TFRFF(matr, vec);
     }
-    else if (tP != Gauss && tP != TripleDiagMatrix) {
-        cerr << "This type of problem was not found!" << endl;
-    }
-    return new TFRFF(matr, vec);
+}
+
+double TSolve::_t(const TMatrix& m) const {
+    double res = 0.0;
+    for (int i = 0; i < m.GetSizeRow(); i++)
+        for (int j = i + 1; j < m.GetSizeCol(); j++)
+            res += m[i][j] * m[i][j];
+    return sqrt(res);
 }
 
 void TSolve::_writeToFile(const string& path) {
@@ -283,5 +300,64 @@ int TSolve::ToSolveByTripleDiagMatrix() {
     _writeToFile(pathTo);
     _clear();
     delete tmpRead; 
+    return 0;
+}
+
+int TSolve::ToSolveByRotateMethod() {
+    TFRFF* tmpRead = _readFromFile(pathFrom, Rotate);
+    _matrA.SetLink(tmpRead->matr);
+    ofstream log("solve1RotateMethod.log", ios::out);
+    log << "|Method Rotate| by Alexander Bales 80-308" << endl << endl;
+    TMatrix rotateMatr( _matrA.GetSizeRow(), 
+                        _matrA.GetSizeCol(),
+                        Identity );
+    TMatrix A(_matrA);
+    TMatrix OwnVectors(rotateMatr);
+    //ofstream urs("tmp.log", ios::out);
+    int cnt = 0;
+    while (_t(A) > eps) {
+        log << "|" << cnt++ + 1 << " iteration|" << endl;
+        log << "********************************************" << endl;
+        A.Print(log, "A");
+        pair<int, int> pos = A.FindPosMaxNotDiagElem();
+        int i = pos.first, j = pos.second;
+        log << "maxPos = (" << i + 1 << "; " << j + 1 << ");" << endl << endl;
+        double angel = 0.0;
+        try {
+            angel = A[i][i] == A[j][j] ? M_PI / 4 :
+                            .5 * atan(2 * A[i][j] /
+                                    (A[i][i] - A[j][j]));
+        }
+        catch (const out_of_range& e) {
+            cerr << "Out of range: " << e.what() << endl;
+        }
+        rotateMatr[i][i] = rotateMatr[j][j] = cos(angel);
+        rotateMatr[i][j] = -sin(angel);
+        rotateMatr[j][i] = -rotateMatr[i][j];
+        rotateMatr.Print(log, "rotateMatr");
+        A = rotateMatr.Rotate() * A * rotateMatr;
+        OwnVectors = OwnVectors * rotateMatr;
+        rotateMatr[i][i] = rotateMatr[j][j] = 1.0;
+        rotateMatr[i][j] = rotateMatr[j][i] = 0.0;
+        OwnVectors.Print(log, "curMultiplyRotateMatrix");
+        log << "############################################" << endl << endl;
+    }
+    _writeToFile(pathTo);
+    for (int i = 0; i < min(A.GetSizeRow(), A.GetSizeCol()); i++)
+        output << "l_" << i + 1 << " = " << A[i][i] << endl;
+    output << endl;
+    for (int i = 0; i < OwnVectors.GetSizeCol(); i++) {
+        output << "x_" << i << " = (";
+        for (int j = 0; j < OwnVectors.GetSizeRow(); j++) {
+            output << OwnVectors[j][i];
+            if (j != OwnVectors.GetSizeRow() - 1)
+                output << ", ";
+        }
+        output << ");" << endl;
+    }
+    _clear();
+    A.Clear();
+    OwnVectors.Clear();
+    rotateMatr.Clear(); 
     return 0;
 }

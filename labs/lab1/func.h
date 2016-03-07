@@ -5,12 +5,17 @@
 #include <iomanip>
 #include <exception>
 #include <stdexcept>
+#include <utility>
 
 using namespace std;
 
-const static double eps = 1e-5;
+const static double eps = 1e-3;
 
-enum TypeProblem { Gauss, Zeydel, SimpleIter, TripleDiagMatrix };
+enum TypeProblem {  Gauss, 
+                    Zeydel, 
+                    SimpleIter, 
+                    TripleDiagMatrix,
+                    Rotate  };
 enum TypeMatrix { Zero, Identity };
 
 int strToInt(char* s);

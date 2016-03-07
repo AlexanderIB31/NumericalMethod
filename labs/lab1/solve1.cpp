@@ -31,6 +31,9 @@ int main(int argc, char* argv[]) {
         case 3:
             cout << (!solve.ToSolveByZeydel() ? "Ok" : "Error...") << endl;
             break;
+        case 4:
+            cout << (!solve.ToSolveByRotateMethod() ? "Ok" : "Error...") << endl;
+            break;
     }
     return 0;
 }

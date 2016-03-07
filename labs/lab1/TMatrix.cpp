@@ -137,6 +137,8 @@ TMatrix& TMatrix::operator= (const TMatrix& matr) {
 }
 
 void TMatrix::Print() const {
+    if (_vec == NULL)
+        return;
     for (int i = 0; i < _szRow; ++i) {
         for (int j = 0; j < _szCol; ++j)
             cout << _vec[i][j] << " ";
@@ -145,6 +147,8 @@ void TMatrix::Print() const {
 }    
 
 void TMatrix::Print(ofstream& o) const {
+    if (_vec == NULL)
+        return;
     for (int i = 0; i < _szRow; ++i) {
         for (int j = 0; j < _szCol; ++j)
             o << _vec[i][j] << " ";
@@ -153,6 +157,8 @@ void TMatrix::Print(ofstream& o) const {
 }    
 
 void TMatrix::Print(ofstream& o, const string& str) const {
+    if (_vec == NULL)
+        return;
     o << "Matrix " + str + ":" << endl;
     for (int i = 0; i < _szRow; ++i) {
         for (int j = 0; j < _szCol; ++j)
@@ -180,6 +186,25 @@ int TMatrix::FindPosMaxElemInColumn(int col) const {
 		}
 	}
 	return pos;
+}
+
+pair<int, int> TMatrix::FindPosMaxNotDiagElem() const {
+    pair<int, int> res(0, 1);
+    double maxEl;
+    try {
+        maxEl  = abs(_vec[0][1]);
+    }
+    catch (const out_of_range& e) {
+        cerr << "Out of range: " << e.what() << endl;
+    }
+    for (int i = 0; i < _szRow; i++)
+        for (int j = 0; j < _szCol; j++)
+            if (i != j)
+                if (abs(_vec[i][j]) > maxEl) {
+                    maxEl = abs(_vec[i][j]);
+                    res = make_pair(i, j); 
+                }
+    return res;
 }
 
 int TMatrix::FindDiagElemIsNotNull(int pos) const {
@@ -254,7 +279,7 @@ void TMatrix::SetSize(int sz) {
 }
 */
 void TMatrix::Clear() {
-    if (_szRow > 0) {
+    if (_szRow > 0 && _szCol > 0 && _vec != NULL) {
         for (int i = 0; i < _szRow; ++i)
             delete[] _vec[i];
         delete[] _vec;
@@ -287,4 +312,13 @@ int TMatrix::GetSizeCol() const {
 
 double** TMatrix::GetVec() const {
     return _vec;
+}
+
+TMatrix TMatrix::Rotate() const {
+    TMatrix res(_szCol, _szRow, Zero);
+    for (int i = 0; i < _szCol; i++) {
+        for (int j = 0; j < _szRow; j++) 
+            res[i][j] = _vec[j][i];
+    }
+    return res;
 }

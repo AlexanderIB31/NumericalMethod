@@ -21,12 +21,14 @@ public:
     TMatrix& operator= (const TMatrix& matr);
 
 	int FindPosMaxElemInColumn(int col) const;
+    pair<int, int> FindPosMaxNotDiagElem() const;
     int FindDiagElemIsNotNull(int pos) const;
 	void Print() const;
     void Print(ofstream& o) const;    
     virtual void Print(ofstream& o, const string& str) const;
     void SetLink(const TMatrix& matr);     
     void AssignColumn(const TMatrix& vec, int pos);
+    TMatrix Rotate() const;
     
     int GetSizeRow() const;
     int GetSizeCol() const;
