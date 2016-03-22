@@ -42,5 +42,6 @@ public:
     int ToSolveByZeydel();
     int ToSolveByTripleDiagMatrix();
     int ToSolveByRotateMethod();
+    int ToSolveByQR();
 };
 

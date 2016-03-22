@@ -6,10 +6,11 @@
 #include <exception>
 #include <stdexcept>
 #include <utility>
+#include <vector>
 
 using namespace std;
 
-const static double eps = 1e-3;
+const static double eps = 0.01;
 
 enum TypeProblem {  Gauss, 
                     Zeydel, 
@@ -18,8 +19,10 @@ enum TypeProblem {  Gauss,
                     Rotate  };
 enum TypeMatrix { Zero, Identity };
 
-int strToInt(char* s);
-
+int strToInt(const char* s);
+double EvklidNorm(const vector<double>& v);
+int sign(double a);
+pair<pair<double, double>, char> solveQuadEquation(const vector<double>& v);
 
 class incomp_matrix : public exception {
 public:

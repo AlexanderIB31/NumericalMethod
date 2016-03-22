@@ -4,7 +4,7 @@ TFRFF* TSolve::_readFromFile(const string& path, TypeProblem tP) {
     input.open(path.c_str(), ifstream::in);
     if (!input.is_open()) {
         cerr << "Incorrect file name" << endl;
-        return 0; 
+        return NULL; 
     }
     int tmpSz = -1;
     input >> tmpSz;
@@ -123,11 +123,13 @@ TSolve::TSolve(const string& pFrom, const string& pTo) {
 
 int TSolve::ToSolveBySimpleIterations() {
     TFRFF* tmpRead = _readFromFile(pathFrom, SimpleIter);
+    if (tmpRead == NULL)
+        return -1;
     _matrA.SetLink(tmpRead->matr);
     _vecB.SetLink(tmpRead->vec);
     if (abs(_matrA.GetNorm()) >= 1.0) {
         cerr << "Error!!!" << endl;
-        return 1;
+        return -1;
     }
     log.open("solve1SimpleIter.log", ofstream::out);
     log << "|Method Simple Iterations| by Alexander Bales 80-308" << endl << endl;
@@ -161,6 +163,8 @@ int TSolve::ToSolveBySimpleIterations() {
 
 int TSolve::ToSolveByZeydel() {    
     TFRFF* tmpRead = _readFromFile(pathFrom, Zeydel);
+    if (tmpRead == NULL)
+        return -1;
     _matrA.SetLink(tmpRead->matr);
     _vecB.SetLink(tmpRead->vec);
     //if (abs(_matrA.GetNorma()) >= 1.0) cout << "Error!!![3]" << endl;
@@ -216,6 +220,8 @@ int TSolve::ToSolveByZeydel() {
 
 int TSolve::ToSolveByGauss() {                 
     TFRFF* tmpRead = _readFromFile(pathFrom, Gauss);
+    if (tmpRead == NULL)
+        return -1;
     _matrA.SetLink(tmpRead->matr);
     _vecB.SetLink(tmpRead->vec);
     ofstream log("solve1Gauss.log", ios::out);
@@ -283,6 +289,8 @@ int TSolve::ToSolveByGauss() {
 
 int TSolve::ToSolveByTripleDiagMatrix() {
     TFRFF* tmpRead = _readFromFile(pathFrom, TripleDiagMatrix);
+    if (tmpRead == NULL)
+        return -1;
     _matrA.SetLink(tmpRead->matr);
     _vecB.SetLink(tmpRead->vec);
     ofstream log("solve1TripleDiagMatrix.log", ios::out);
@@ -305,6 +313,8 @@ int TSolve::ToSolveByTripleDiagMatrix() {
 
 int TSolve::ToSolveByRotateMethod() {
     TFRFF* tmpRead = _readFromFile(pathFrom, Rotate);
+    if (tmpRead == NULL)
+        return -1;
     _matrA.SetLink(tmpRead->matr);
     ofstream log("solve1RotateMethod.log", ios::out);
     log << "|Method Rotate| by Alexander Bales 80-308" << endl << endl;
@@ -316,6 +326,7 @@ int TSolve::ToSolveByRotateMethod() {
     //ofstream urs("tmp.log", ios::out);
     int cnt = 0;
     while (_t(A) > eps) {
+        cout << _t(A) << endl;
         log << "|" << cnt++ + 1 << " iteration|" << endl;
         log << "********************************************" << endl;
         A.Print(log, "A");
@@ -359,5 +370,105 @@ int TSolve::ToSolveByRotateMethod() {
     A.Clear();
     OwnVectors.Clear();
     rotateMatr.Clear(); 
+    return 0;
+}
+
+int TSolve::ToSolveByQR() {
+     TFRFF* tmpRead = _readFromFile(pathFrom, Rotate);
+     if (tmpRead == NULL)
+         return -1;
+    _matrA.SetLink(tmpRead->matr);
+    TMatrix A(_matrA);
+    ofstream log("solve1QR.log", ios::out);
+    log << "|Method QR| by Alexander Bales 80-308" << endl << endl;
+    int curSz = min(A.GetSizeRow(), A.GetSizeCol());
+    bool check = false;
+    TMatrix E(curSz, curSz, Identity);
+    vector<pair<pair<double, double>, char> > tmpVecOwnValues(A.GetSizeRow(), make_pair(make_pair(0.0, 0.0), 255));
+
+    while (!check) {
+        TMatrix Q(E);
+        for (int i = 0; i < curSz; i++) {
+            TVector v(A.GetSizeRow());
+            vector<double> tmpVec;
+            for (int j = i; j < A.GetSizeRow(); j++)
+                tmpVec.push_back(A[j][i]);
+            v[i] = A[i][i] + sign(A[i][i]) * EvklidNorm(tmpVec);
+            for (int j = i + 1; j < A.GetSizeRow(); j++) {
+                v[j] = A[j][i];        
+            }
+            TMatrix H(E - (2.0 / ((v * v.Rotate())[0][0]) * (v.Rotate() * v)) );
+            Q = Q * H;
+            A = H * A;
+            H.Clear();
+        }
+        A = A * Q;
+        Q.Clear();
+        check = true;
+        for (int i = 0; check && i < A.GetSizeCol(); i++) {
+            for (int j = i + 2; check && j < A.GetSizeRow(); j++)
+                if (((int)((abs(A[j][i]) + eps / 2) * 100)) / 100.0 > eps) {
+                    check = false;
+                    break;
+                }
+            if (check && i + 1 < A.GetSizeRow() 
+                    && ((int)((abs(A[i + 1][i]) + eps / 2) * 100)) / 100.0 > eps) { // than find complex
+                vector<double> vec;
+                vec.push_back(1.0);
+                vec.push_back(-(A[i][i] + A[i + 1][i + 1]));
+                vec.push_back(A[i][i] * A[i + 1][i + 1] - 
+                            A[i + 1][i] * A[i][i + 1]);
+                pair<pair<double, double>, char> res = 
+                    solveQuadEquation(vec);
+                if (res.second != 1) {
+                    cerr << "Trouble!!! " << __LINE__ << endl;    
+                }
+                if (tmpVecOwnValues[i].second != 255) {
+                    res.second = -1;
+                    tmpVecOwnValues[i] = res;
+                    res.second = -2;
+                    tmpVecOwnValues[i + 1] = res;
+                }
+                else if (tmpVecOwnValues[i].first != res.first){
+                    cerr << "Trouble!!! " << __LINE__ << endl;          
+                }
+                i++;
+            }
+        }   
+        A.Print(log);
+        log << endl;
+    }
+    E.Clear();
+    A.Print(log);
+    _writeToFile(pathTo);
+    for (int i = 0; i < A.GetSizeRow(); i++) {        
+        if (i + 1 < A.GetSizeRow() && ((int)((abs(A[i + 1][i]) + eps / 2) * 100)) / 100.0 > eps) {
+            vector<double> vec;
+            vec.push_back(1.0);
+            vec.push_back(-(A[i][i] + A[i + 1][i + 1]));
+            vec.push_back(A[i][i] * A[i + 1][i + 1] - 
+                        A[i + 1][i] * A[i][i + 1]);
+            pair<pair<double, double>, char> res = 
+                solveQuadEquation(vec);
+
+            if (res.second != 1) {
+                cerr << "Troubles..." << endl;
+            }
+            else if (tmpVecOwnValues[i].first == res.first) {
+                output << "own value[" << i + 1 << "] = " 
+                    << res.first.first << " + " << res.first.second 
+                    << "i" << endl;
+                output << "own value[" << i + 2 << "] = "
+                    << res.first.first << " - " << res.first.second
+                    << "i" << endl;
+                i++;
+            }
+        }
+        else {
+            tmpVecOwnValues[i] = make_pair(make_pair(A[i][i], 0.0), 2);
+            output << "own value[" << i + 1 << "] = " << A[i][i] << endl;
+        }
+    }
+    _clear();
     return 0;
 }

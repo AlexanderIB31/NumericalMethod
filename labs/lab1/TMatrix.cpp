@@ -67,16 +67,29 @@ TMatrix TMatrix::operator* (const TMatrix& matr) const {
         return TMatrix(_szRow, _szCol, Zero);
     }
     
-    TMatrix res(matr.GetSizeRow(), matr.GetSizeCol(), Zero);                for (int i = 0; i < _szRow; ++i) {
-        for (int j = 0; j < _szCol; ++j) {
+    TMatrix res(_szRow, matr.GetSizeCol(), Zero);                
+    for (int i = 0; i < _szRow; ++i) {
+        for (int j = 0; j < matr.GetSizeCol(); ++j) {
             double tmp = 0.0;
-            for (int k = 0; k < _szRow; ++k) {
-                tmp += _vec[j][k] * matr[k][i];
+            for (int k = 0; k < _szCol; ++k) {
+                tmp += _vec[i][k] * matr[k][j];
             }
-            res[j][i] = tmp;
+            res[i][j] = tmp;
         }
     }
     return res;
+}
+
+TMatrix TMatrix::operator* (double a) const {
+    TMatrix res(*this);
+    for (int i = 0; i < _szRow; i++) 
+        for (int j = 0; j < _szCol; j++)
+            res[i][j] *= a;
+    return res;
+}
+
+TMatrix operator* (double a, const TMatrix& m) {
+    return m * a;
 }
 
 TMatrix TMatrix::operator+ (const TMatrix& m) const {

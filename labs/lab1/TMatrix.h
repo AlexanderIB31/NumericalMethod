@@ -15,6 +15,8 @@ public:
 //    TMatrix(ifstream& fstr, TVector& vec, TypeProblem typeProblem);
                 
     TMatrix operator* (const TMatrix& m) const;
+    TMatrix operator* (double a) const;
+    friend TMatrix operator* (double a, const TMatrix& m);
     TMatrix operator+ (const TMatrix& m) const;
     TMatrix operator- (const TMatrix& m) const;
     double* operator[] (int pos) const;    
