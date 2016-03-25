@@ -10,13 +10,15 @@
 
 using namespace std;
 
-const static double eps = 0.01;
+static double eps = 0.01;
 
 enum TypeProblem {  Gauss, 
                     Zeydel, 
                     SimpleIter, 
                     TripleDiagMatrix,
-                    Rotate  };
+                    Rotate,
+                    QR  };
+
 enum TypeMatrix { Zero, Identity };
 
 int strToInt(const char* s);

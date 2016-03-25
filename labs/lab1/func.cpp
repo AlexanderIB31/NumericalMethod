@@ -11,22 +11,24 @@ int strToInt(const char* s) {
 
 double EvklidNorm(const vector<double>& v) {
     double res = 0.0;
-    for (size_t i = 0; i < v.size(); ++i) { res += v[i] * v[i];
+    for (size_t i = 0; i < v.size(); ++i) { 
+        res += v[i] * v[i];
     }
     return sqrt(res);
 }
 
 int sign(double a) {
-    return (a >= 0 ? (a == 0 ? 0 : 1) : -1);
+    return (a >= 0 ? 1 : -1);//(a == 0 ? 0 : 1) : -1);
 }
 
 pair<pair<double, double>, char> solveQuadEquation(const vector<double>& v) {
     double D = v[1] * v[1] - 4.0 * v[0] * v[2];
-    if (D > eps) {
+    double curEps = eps * eps;
+    if (D > curEps) {
         return make_pair(make_pair( (-v[1] + sqrt(D)) / (2 * v[0]), 
                 (-v[1] - sqrt(D)) / (2 * v[0])), 0);    
     }
-    else if (D < -eps) {
+    else if (D < -curEps) {
         return make_pair(make_pair(-v[1] / (2 * v[0]), 
                 sqrt(-D) / (2 * v[0])), 1);    
     }

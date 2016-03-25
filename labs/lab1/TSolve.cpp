@@ -9,11 +9,12 @@ TFRFF* TSolve::_readFromFile(const string& path, TypeProblem tP) {
     int tmpSz = -1;
     input >> tmpSz;
     TMatrix matr(tmpSz, (tP == TripleDiagMatrix ? 3 : tmpSz), Zero);
-    if (tP == Rotate) {
+    if (tP == Rotate || tP == QR) {
          for (int i = 0; i < tmpSz; ++i) {
             for (int j = 0; j < matr.GetSizeCol(); ++j) 
                 input >> matr[i][j];
         }
+        input >> eps;
         return new TFRFF(matr);
     }
     else {
@@ -33,9 +34,8 @@ TFRFF* TSolve::_readFromFile(const string& path, TypeProblem tP) {
                 matr[i][i] = 0.0;
             }
         }
-        else if (tP != Gauss && tP != TripleDiagMatrix) {
-            cerr << "This type of problem was not found!" << endl;
-        }
+        if (tP != Gauss && tP != TripleDiagMatrix)
+            cerr << "This type of problem is not found" << endl;
         return new TFRFF(matr, vec);
     }
 }
@@ -374,7 +374,7 @@ int TSolve::ToSolveByRotateMethod() {
 }
 
 int TSolve::ToSolveByQR() {
-     TFRFF* tmpRead = _readFromFile(pathFrom, Rotate);
+     TFRFF* tmpRead = _readFromFile(pathFrom, QR);
      if (tmpRead == NULL)
          return -1;
     _matrA.SetLink(tmpRead->matr);
@@ -382,16 +382,16 @@ int TSolve::ToSolveByQR() {
     ofstream log("solve1QR.log", ios::out);
     log << "|Method QR| by Alexander Bales 80-308" << endl << endl;
     int curSz = min(A.GetSizeRow(), A.GetSizeCol());
-    bool check = false;
+    bool check = true;
     TMatrix E(curSz, curSz, Identity);
     vector<pair<pair<double, double>, char> > tmpVecOwnValues(A.GetSizeRow(), make_pair(make_pair(0.0, 0.0), 255));
 
-    while (!check) {
+    while (check) {
         TMatrix Q(E);
-        for (int i = 0; i < curSz; i++) {
+        for (int i = 0; i < curSz - 1; i++) {
             TVector v(A.GetSizeRow());
             vector<double> tmpVec;
-            for (int j = i; j < A.GetSizeRow(); j++)
+            for (int j = 0; j < A.GetSizeRow(); j++)
                 tmpVec.push_back(A[j][i]);
             v[i] = A[i][i] + sign(A[i][i]) * EvklidNorm(tmpVec);
             for (int j = i + 1; j < A.GetSizeRow(); j++) {
@@ -404,13 +404,17 @@ int TSolve::ToSolveByQR() {
         }
         A = A * Q;
         Q.Clear();
-        check = true;
-        for (int i = 0; check && i < A.GetSizeCol(); i++) {
-            for (int j = i + 2; check && j < A.GetSizeRow(); j++)
-                if (((int)((abs(A[j][i]) + eps / 2) * 100)) / 100.0 > eps) {
-                    check = false;
-                    break;
-                }
+        for (int i = 0; i < A.GetSizeCol(); i++) {
+            double tmpVal = 0.0;
+            for (int j = i + 2; j < A.GetSizeRow(); j++)
+                tmpVal += A[j][i] * A[j][i];
+            if (tmpVal >= eps * eps) {
+                check = true;
+                break;
+            }
+            else
+                check = false;
+/*
             if (check && i + 1 < A.GetSizeRow() 
                     && ((int)((abs(A[i + 1][i]) + eps / 2) * 100)) / 100.0 > eps) { // than find complex
                 vector<double> vec;
@@ -421,6 +425,10 @@ int TSolve::ToSolveByQR() {
                 pair<pair<double, double>, char> res = 
                     solveQuadEquation(vec);
                 if (res.second != 1) {
+                    res.second = -5;
+                    tmpVecOwnValues[i] = res;
+                    res.second = -6;
+                    tmpVecOwnValues[i + 1] = res;
                     cerr << "Trouble!!! " << __LINE__ << endl;    
                 }
                 if (tmpVecOwnValues[i].second != 255) {
@@ -434,6 +442,7 @@ int TSolve::ToSolveByQR() {
                 }
                 i++;
             }
+*/            
         }   
         A.Print(log);
         log << endl;
@@ -442,7 +451,7 @@ int TSolve::ToSolveByQR() {
     A.Print(log);
     _writeToFile(pathTo);
     for (int i = 0; i < A.GetSizeRow(); i++) {        
-        if (i + 1 < A.GetSizeRow() && ((int)((abs(A[i + 1][i]) + eps / 2) * 100)) / 100.0 > eps) {
+        if (i + 1 < A.GetSizeRow() && (abs(A[i + 1][i]) - eps) > eps) {
             vector<double> vec;
             vec.push_back(1.0);
             vec.push_back(-(A[i][i] + A[i + 1][i + 1]));
@@ -450,23 +459,32 @@ int TSolve::ToSolveByQR() {
                         A[i + 1][i] * A[i][i + 1]);
             pair<pair<double, double>, char> res = 
                 solveQuadEquation(vec);
-
             if (res.second != 1) {
-                cerr << "Troubles..." << endl;
+                cerr << "Troubles... " << endl;
             }
-            else if (tmpVecOwnValues[i].first == res.first) {
-                output << "own value[" << i + 1 << "] = " 
-                    << res.first.first << " + " << res.first.second 
-                    << "i" << endl;
-                output << "own value[" << i + 2 << "] = "
-                    << res.first.first << " - " << res.first.second
-                    << "i" << endl;
+            else {
+                res.second = -1;
+                tmpVecOwnValues[i] = res;
+                res.second = -2;
+                tmpVecOwnValues[i + 1] = res;
                 i++;
             }
         }
         else {
             tmpVecOwnValues[i] = make_pair(make_pair(A[i][i], 0.0), 2);
-            output << "own value[" << i + 1 << "] = " << A[i][i] << endl;
+        }
+    }
+    for (size_t i = 0; i < tmpVecOwnValues.size(); ++i) {
+        if (tmpVecOwnValues[i].second == 2)
+            output << "eigenvalue[" << i + 1 << "] = " << tmpVecOwnValues[i].first.first << endl;
+        if (tmpVecOwnValues[i].second == -1) {
+            output << "eigenvalue[" << i + 1 << "] = " << tmpVecOwnValues[i].first.first << " + " << tmpVecOwnValues[i].first.second << "i" << endl;
+            i++;
+            output << "eigenvalue[" << i + 1 << "] = " << tmpVecOwnValues[i].first.first << " - " << tmpVecOwnValues[i].first.second << "i" << endl;
+        }
+        if (tmpVecOwnValues[i].second == 0) {
+            output << "eigenvalue[" << i + 1 << "] = " << tmpVecOwnValues[i].first.first << endl;
+            output << "eigenvalue[" << i + 1 << "] = " << tmpVecOwnValues[i].first.second << endl;
         }
     }
     _clear();
