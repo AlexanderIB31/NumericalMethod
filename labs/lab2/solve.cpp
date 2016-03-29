@@ -38,7 +38,7 @@ public:
         _a = 0.0;
         _b = 0.5;
         double x_0 = (_a + _b) / 2; 
-        double q = abs(Dfi(_b)); // as function monotonously decreases
+        double q = max(abs(Dfi(_b)), abs(Dfi(_a))); // as function monotonously
         double eps_k = EPS;
         double solve = _b + 1.0;
         for (int iter = 0; iter < 1000; ++iter) {
