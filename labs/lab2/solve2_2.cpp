@@ -1,6 +1,12 @@
 #include "func.h"
+#include "./../lab1/TSolve.h"
 
-//extern double EPS;
+// System of functions:
+//
+// ((x1) ^ 2 + a ^ 2) * x2 - a ^ 3 = 0
+// (x1 - a/2) ^ 2 + (x2 + a/2) ^ 2 - a ^ 2 = 0
+//
+
 
 class BadFileExcept : public exception {
 private:
@@ -15,9 +21,9 @@ public:
     }
 };
 
-class TSolve {
+class TSolveSystem {
 public:
-    TSolve(const string& from, const string& to) {
+    TSolveSystem(const string& from, const string& to) {
         in.open(from.c_str(), ios::in);
         out.open(to.c_str(), ios::out);
         if (!in.is_open()) {
@@ -29,9 +35,17 @@ public:
         in >> EPS;
         _a = 0.0;
         _b = 1.0;
+
+        auto f1 = [](double x1, double x2, double a) -> double { 
+            return (x1 * x1 + a * a) * x2 - a * a * a; };
+        auto f2 = [](double x1, double x2, double a) -> double {
+            return pow(x1 - a/2, 2.0) + pow(x2 + a/2, 2.0) - a * a; };
+            
+        _systemFunctions.push_back(f1); 
+        _systemFunctions.push_back(f2); 
     }
 
-    ~TSolve() { in.close(); out.close(); }
+    ~TSolveSystem() { in.close(); out.close(); _systemFunctions.clear(); }
 
     void ToSolveBySimpleIter() {
         ofstream log("solveSimpleIter.log", ios::out);
@@ -86,6 +100,7 @@ private:
     ofstream out, log;
     
     double _a, _b;
+    vector<double (*)(double, double, double)> _systemFunctions; // F(x) = 0
 };
 
 
@@ -101,7 +116,7 @@ int main(int argc, char* argv[]) {
         return -1;
     }
     try {
-        TSolve solve(pathFrom, pathTo);
+        TSolveSystem solve(pathFrom, pathTo);
         solve.ToSolveBySimpleIter();
 //        solve.ToSolveByNewtoon();
     }
