@@ -12,6 +12,8 @@ enum TypeSolve { Iter, Newtoon };
 
 static double EPS = .01;
 
+static double A = 4;
+
 double F(double x);
 
 double DF(double x);

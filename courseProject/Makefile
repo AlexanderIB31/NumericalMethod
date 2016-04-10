@@ -1,8 +1,9 @@
 CC 		= g++
-CFLAGS 	= -std=c++11 -Wall -pedantic -I/opt/AMDAPPSDK-3.0/include -L/opt/AMDAPPSDK-3.0/lib/x86_64/
+CFLAGS 	= -std=c++11 -Wall -pedantic -I/opt/AMDAPPSDK-3.0/include 
+LFLAGS 	= -L/opt/AMDAPPSDK-3.0/lib/x86_64 -lOpenCL
 
-solve: testProg.cpp
-	$(CC) $(CFLAGS) $^ -o solve -lOpenCL
+all: testProg.cpp
+	$(CC) $(CFLAGS) $< -o solve $(LFLAGS)
 
 clean:
 	rm -rf *.o *~ solve *.log res*

@@ -1,4 +1,4 @@
-__kernel void test(__global double* rawMatrix, __global int len)
+__kernel void test(__global double* rawMatrix, __global int* len)
 {
 
 }

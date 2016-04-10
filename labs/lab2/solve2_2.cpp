@@ -4,8 +4,10 @@
 // System of functions:
 //
 // ((x1) ^ 2 + a ^ 2) * x2 - a ^ 3 = 0
-// (x1 - a/2) ^ 2 + (x2 + a/2) ^ 2 - a ^ 2 = 0
+// (x1 - a/2) ^ 2 + (x2 - a/2) ^ 2 - a ^ 2 = 0
 //
+
+//#define DEBUG 1
 
 
 class BadFileExcept : public exception {
@@ -21,6 +23,13 @@ public:
     }
 };
 
+vector<double> GetAverageVector(const vector<pair<double, double> >& v) {
+    vector<double> res;
+    for (auto i : v)
+        res.push_back((i.first + i.second) / 2);
+    return res;
+}
+
 class TSolveSystem {
 public:
     TSolveSystem(const string& from, const string& to) {
@@ -33,13 +42,18 @@ public:
             throw new BadFileExcept(to.c_str());
         }
         in >> EPS;
-        _a = 0.0;
-        _b = 1.0;
-
+        while (1) {
+            double a, b;
+            in >> a >> b;
+            if (in.eof())
+                break;
+            _borders.push_back(make_pair(a, b));
+        }
+        
         auto f1 = [](double x1, double x2, double a) -> double { 
             return (x1 * x1 + a * a) * x2 - a * a * a; };
         auto f2 = [](double x1, double x2, double a) -> double {
-            return pow(x1 - a/2, 2.0) + pow(x2 + a/2, 2.0) - a * a; };
+            return pow(x1 - a/2, 2.0) + pow(x2 - a/2, 2.0) - a * a; };
             
         _systemFunctions.push_back(f1); 
         _systemFunctions.push_back(f2); 
@@ -49,38 +63,132 @@ public:
 
     void ToSolveBySimpleIter() {
         ofstream log("solveSimpleIter.log", ios::out);
-        _a = 0.0;
-        _b = 0.5;
-        double x_0 = (_a + _b) / 2; 
-        double q = max(abs(Dfi(_b)), abs(Dfi(_a))); // as function monotonously
-        double eps_k = EPS;
-        double solve = _b + 1.0;
+
+#ifdef DEBUG
+        cout << __LINE__ << endl;
+#endif        
+        TVector x_0(GetAverageVector(_borders)); 
+#ifdef DEBUG
+        cout << __LINE__ << endl;
+#endif        
+
+
+//        auto CalcJakobian_F = [](double x1, double x2, double a) -> double { 
+//            return 2 * x2 * x1 * (2 * x2 - a) - (2 * x1 - a) * (x1 * x1 + a * a); 
+//        };
+
+        auto CalcJakobian_F = [](double x1, double x2, double a) -> double { 
+            return max(abs(2 * x2 * x1), 
+                        max(abs(2 * x2 - a), 
+                            max(abs(2 * x1 - a), abs(x1 * x1 + a * a)))); 
+        };
+
+        double J_0 = CalcJakobian_F(x_0[0], x_0[1], A);
+#ifdef DEBUG
+        cout << "J_0 = " << J_0 << endl;
+#endif        
+//        auto CalcJakobian_fi = [=](double x1, double x2, double a) -> double {
+//            return 1.0 - (2 * x2 * x1 + 2 * x2 - a) / J_0 
+//                    + (4 * x2 * x2 * x1 + 2 * a * x2 * x1 - 2 * x1 * x1 * x1 - 2 * a * a * x1 + a * x1 * x1 + a * a * a) / (J_0 * J_0);
+//        };
+        
+        auto CalcJakobian_fi = [=](double x1, double x2, double a) -> double {
+            return max(abs(1.0 - (2 * x2 * x1) / J_0), 
+                    max(abs((x1 * x1 + a * a) / J_0), 
+                        max(abs((2 * x1 - a) / J_0), abs(1.0 - (2 * x2 - a) / J_0))));
+        };
+
+#ifdef DEBUG
+        double *max = NULL;
+        double delta = 1e-4;
+        double EPSS = 1e-3;
+        
+        double resX1, resX2;
+        for (double stepX1 = _borders[0].first; abs(stepX1 - _borders[0].second) >= EPSS; stepX1 += delta) {
+            for (double stepX2 = _borders[1].first; abs(stepX2 - _borders[1].second) >= EPSS; stepX2 += delta) {
+                if (max == NULL) {
+                    max = new double;
+                    *max = CalcJakobian_fi(stepX1, stepX2, A);
+                    resX1 = stepX1;
+                    resX2 = stepX2;
+                }
+                else {
+                    if (*max < CalcJakobian_fi(stepX1, stepX2, A)) {
+                        *max = CalcJakobian_fi(stepX1, stepX2, A);
+                        resX1 = stepX1;
+                        resX2 = stepX2;
+                    }
+                }
+            }
+        }
+        cout << "res: " << resX1 << " | " << resX2 << endl;
+        cout << "value = " << *max << endl;
+        cout << "gg = " << CalcJakobian_fi(-2, 4, A) << endl;
+#endif                
+
+        vector<double (*)(double, double, double)> _systemFI;
+
+        auto fi_1 = [&](double x1, double x2, double a) -> double {
+            return x1 - _systemFunctions[0](x1, x2, A) / J_0; 
+        };
+        
+        auto fi_2 = [&](double x1, double x2, double a) -> double {
+            return x2 - _systemFunctions[1](x1, x2, A) / J_0; 
+        };
+
+        double q;
+        try {
+            q = CalcJakobian_fi(_borders[0].first, _borders[1].first, A);
+        }
+        catch (const out_of_range& e) {
+            cerr << e.what() << endl;
+        }
+#ifdef DEBUG
+        cout << "q = " << q << endl;        
+#endif
+
+        auto norm = [](const TVector& x) -> double { 
+            double res = 0;
+            for (int i = 0; i < x.GetSize(); ++i)
+                res += x[i] * x[i];
+            return sqrt(res); 
+        };
+
+        double eps_k = EPS;    
+        TVector solution(x_0.GetSize());
+
+#ifdef DEBUG
+        cout << __LINE__ << endl;
+#endif        
         for (int iter = 0; iter < 1000; ++iter) {
-            solve = fi(x_0);
-            log << "x_" << iter << " = " << x_0 << "; ";
-            log << "x_" << iter + 1 << " = " << solve << "; ";
-            eps_k = q / (1 - q) * abs(solve - x_0);
+            solution[0] = fi_1(x_0[0], x_0[1], A);
+            solution[1] = fi_2(x_0[0], x_0[1], A);
+            log << "x[" << iter << "] = (" << x_0[0] << ", " << x_0[1] << "); ";
+            log << "x[" << iter + 1 << "] = (" << solution[0] << ", " << solution[1] << "); ";
+            eps_k = q / (1.0 - q) * norm(solution - x_0);
             log << "eps_" << iter << " = " << eps_k << endl;
             if (eps_k < EPS)
                 break;
-            x_0 = solve;
+            x_0 = solution;
         }
         log.close();
-        out << "solve = " << solve << endl;
+        out << "solution = (" << solution[0] << ", " << solution[1] << ")" << endl;
     }
 
     void ToSolveByNewtoon() {
-        ofstream log("solveNewtoon.log", ios::out);
-        _a = 0.0;
-        _b = 1.0;
-        double x_0 = (_a + _b) / 2;
+        ofstream log("solveSimpleIter.log", ios::out);
+
+#ifdef DEBUG
+        cout << __LINE__ << endl;
+#endif        
+/*        
+        TVector x_0(GetAverageVector(_borders)); 
         if (F(x_0) * DDF(x_0) <= 0) { // must check this 
             x_0 = _a;
             if (F(x_0) * DDF(x_0) <= 0)
                 x_0 = _b;
         }
-        log << "x_0 = " << x_0 << endl;
-        double solve = _b + 1.0;
+        log << "x_0 = (" << x_0[0] << ", " << x_0[1] << ")" << endl;
         for (size_t iter = 0; iter < 1000; iter++) {
             double x_new = x_0 - F(x_0) / DF(x_0);
             log << "x_" << iter << " = " << x_new << endl;
@@ -94,13 +202,14 @@ public:
         }
         log.close();
         out << "solve: " << solve << endl;
+*/        
     }
 private:
     ifstream in;
     ofstream out, log;
     
-    double _a, _b;
     vector<double (*)(double, double, double)> _systemFunctions; // F(x) = 0
+    vector<pair<double, double> > _borders;
 };
 
 

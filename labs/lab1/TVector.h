@@ -4,6 +4,7 @@
 class TVector : public TMatrix {   
 public:
     TVector();
+    TVector(const vector<double>& v);
 	TVector(double** v, int sz);    
 	TVector(int sz);    
     TVector(const TMatrix& m);

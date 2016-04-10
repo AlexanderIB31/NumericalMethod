@@ -6,6 +6,11 @@ TVector::TVector(double** v, int sz) : TMatrix(v, sz, 1) { }
 //    TMatrix::TMatrix(v, sz, 1);
 //}
 
+TVector::TVector(const vector<double>& v) : TVector(v.size()){
+    for (int i = 0; i < _szCol; ++i) 
+        _vec[0][i] = v[i];
+}
+
 TVector::TVector(int sz) {
     _szCol = sz;
     _szRow = 1;

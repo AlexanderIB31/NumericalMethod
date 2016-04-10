@@ -1,6 +1,5 @@
 CC      =g++
 CFLAGS  =-c -Wall -pedantic -std=c++11
-#LFLAGS  =
 
 all: func.o TMatrix.o TVector.o TSolve.o solve1.o
 	$(CC) $^ -o solve
