@@ -72,11 +72,6 @@ public:
         cout << __LINE__ << endl;
 #endif        
 
-
-//        auto CalcJakobian_F = [](double x1, double x2, double a) -> double { 
-//            return 2 * x2 * x1 * (2 * x2 - a) - (2 * x1 - a) * (x1 * x1 + a * a); 
-//        };
-
         auto CalcJakobian_F = [](double x1, double x2, double a) -> double { 
             return max(abs(2 * x2 * x1), 
                         max(abs(2 * x2 - a), 
@@ -87,44 +82,12 @@ public:
 #ifdef DEBUG
         cout << "J_0 = " << J_0 << endl;
 #endif        
-//        auto CalcJakobian_fi = [=](double x1, double x2, double a) -> double {
-//            return 1.0 - (2 * x2 * x1 + 2 * x2 - a) / J_0 
-//                    + (4 * x2 * x2 * x1 + 2 * a * x2 * x1 - 2 * x1 * x1 * x1 - 2 * a * a * x1 + a * x1 * x1 + a * a * a) / (J_0 * J_0);
-//        };
-        
+       
         auto CalcJakobian_fi = [=](double x1, double x2, double a) -> double {
             return max(abs(1.0 - (2 * x2 * x1) / J_0), 
                     max(abs((x1 * x1 + a * a) / J_0), 
                         max(abs((2 * x1 - a) / J_0), abs(1.0 - (2 * x2 - a) / J_0))));
         };
-
-#ifdef DEBUG
-        double *max = NULL;
-        double delta = 1e-4;
-        double EPSS = 1e-3;
-        
-        double resX1, resX2;
-        for (double stepX1 = _borders[0].first; abs(stepX1 - _borders[0].second) >= EPSS; stepX1 += delta) {
-            for (double stepX2 = _borders[1].first; abs(stepX2 - _borders[1].second) >= EPSS; stepX2 += delta) {
-                if (max == NULL) {
-                    max = new double;
-                    *max = CalcJakobian_fi(stepX1, stepX2, A);
-                    resX1 = stepX1;
-                    resX2 = stepX2;
-                }
-                else {
-                    if (*max < CalcJakobian_fi(stepX1, stepX2, A)) {
-                        *max = CalcJakobian_fi(stepX1, stepX2, A);
-                        resX1 = stepX1;
-                        resX2 = stepX2;
-                    }
-                }
-            }
-        }
-        cout << "res: " << resX1 << " | " << resX2 << endl;
-        cout << "value = " << *max << endl;
-        cout << "gg = " << CalcJakobian_fi(-2, 4, A) << endl;
-#endif                
 
         vector<double (*)(double, double, double)> _systemFI;
 
@@ -138,14 +101,12 @@ public:
 
         double q;
         try {
-            q = CalcJakobian_fi(_borders[0].first, _borders[1].first, A);
+            q = CalcJakobian_fi(x_0[0], x_0[1], A);
         }
         catch (const out_of_range& e) {
             cerr << e.what() << endl;
         }
-#ifdef DEBUG
         cout << "q = " << q << endl;        
-#endif
 
         auto norm = [](const TVector& x) -> double { 
             double res = 0;
@@ -181,17 +142,43 @@ public:
 #ifdef DEBUG
         cout << __LINE__ << endl;
 #endif        
-/*        
+        
         TVector x_0(GetAverageVector(_borders)); 
-        if (F(x_0) * DDF(x_0) <= 0) { // must check this 
-            x_0 = _a;
-            if (F(x_0) * DDF(x_0) <= 0)
-                x_0 = _b;
-        }
-        log << "x_0 = (" << x_0[0] << ", " << x_0[1] << ")" << endl;
+	
+	string inputStr = "./dependens/inputData";
+	string outputStr = "./dependens/outputData";
+	ofstream o(inputStr.c_str(), ios::out);
+	size_t szOfMatrix = 4;
+	auto print = [&] (double x1, double x2, double a) {
+		o << (2 * x2 * x1) << " " << (x1 * x1 + a * a) << " " << (x1 * x1 + a * a) * x2 - a * a * a << endl;
+		o << 2 * x1 - a << " " << 2 * x2 - a << endl << " " << (pow(x1 - a/2, 2.0) + pow(x2 - a/2, 2.0) - a * a) << endl;
+	}
+ 
+
         for (size_t iter = 0; iter < 1000; iter++) {
-            double x_new = x_0 - F(x_0) / DF(x_0);
-            log << "x_" << iter << " = " << x_new << endl;
+            log << "x_[" << iter << "] = (" << x_0[0] << ", " << x_0[1] << "); ";
+	    o << szOfMatrix << endl;
+            TSolve solve(inputStr, outputStr);
+            if (!solve.ToSolveByGauss()) {
+		ifstream in(outputStr.c_str(), ios::in);
+                vector<double> tempVec;
+		double tmp;
+		while (1) {
+		    in >> tmp;
+		    if (in.eof())
+		        break;
+                    tempVec.push_back(tmp);
+		}
+		solution = TVector(tmpVec);
+	    }
+ 	    else {
+               cerr << "Some troubles..." << endl;
+	       exit(-1);
+ 	    }
+            double eps_k = findMax(solution);
+	    solution = x_0 + solution;
+	    log << "x_[" << iter + 1 << "] = (" << solution[0] << ", " << solution[1] << "); ";
+	    log << "eps[k] = " << eps_k << endl;
             if (abs(F(x_new)) < EPS && abs(x_new - x_0) < EPS) {
                 solve = x_new;
                 break;
@@ -202,7 +189,6 @@ public:
         }
         log.close();
         out << "solve: " << solve << endl;
-*/        
     }
 private:
     ifstream in;
