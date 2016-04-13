@@ -50,9 +50,10 @@ double TSolve::_t(const TMatrix& m) const {
 
 void TSolve::_writeToFile(const string& path) {
     output.open(path.c_str(), ofstream::out);
-    _matrA.Print(output, "A");
-    _vecB.Print(output, "B");
-    _vecX.Print(output, "X");
+	_vecX.Print(output);
+//    _matrA.Print(output, "A");
+//    _vecB.Print(output, "B");
+//    _vecX.Print(output, "X");
 }
 
 void TSolve::_clear() {
@@ -259,11 +260,11 @@ int TSolve::ToSolveByGauss() {
     _vecX.SetLink(_solveAx_is_b(L, U, _vecB));	    
     L.Print(log, "L");
     U.Print(log, "U");    
-    output << "det(A) = ";
+//    output << "det(A) = ";
     double detA = 1.0;
     for (int i = 0; i < tmpSz; ++i)
         detA *= U[i][i];
-    output << pow(-1.0, 1.0 * cntSwitchRowsAndColumns) * detA << endl << endl;              
+//    output << pow(-1.0, 1.0 * cntSwitchRowsAndColumns) * detA << endl << endl;              
     TMatrix reverseA(_matrA.GetSizeRow(), _matrA.GetSizeCol(), Zero);
     for (int i = 0; i < tmpSz; ++i) {
         TVector vec(_matrA.GetSizeRow());
@@ -275,7 +276,7 @@ int TSolve::ToSolveByGauss() {
         vec.Clear();
     }
     _writeToFile(pathTo); 
-    reverseA.Print(output, "A^(-1)");          
+//    reverseA.Print(output, "A^(-1)");          
     TMatrix check(_matrA * reverseA);
     check.Print(log, "A * A^(-1)");    
     L.Clear();

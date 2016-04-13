@@ -7,7 +7,7 @@
 // (x1 - a/2) ^ 2 + (x2 - a/2) ^ 2 - a ^ 2 = 0
 //
 
-//#define DEBUG 1
+#define DEBUG 1
 
 
 class BadFileExcept : public exception {
@@ -137,58 +137,74 @@ public:
     }
 
     void ToSolveByNewtoon() {
-        ofstream log("solveSimpleIter.log", ios::out);
-
+        ofstream log("solveNewtoon.log", ios::out);
 #ifdef DEBUG
         cout << __LINE__ << endl;
 #endif        
-        
         TVector x_0(GetAverageVector(_borders)); 
+		TVector solution(x_0);
 	
-	string inputStr = "./dependens/inputData";
-	string outputStr = "./dependens/outputData";
-	ofstream o(inputStr.c_str(), ios::out);
-	size_t szOfMatrix = 4;
-	auto print = [&] (double x1, double x2, double a) {
-		o << (2 * x2 * x1) << " " << (x1 * x1 + a * a) << " " << (x1 * x1 + a * a) * x2 - a * a * a << endl;
-		o << 2 * x1 - a << " " << 2 * x2 - a << endl << " " << (pow(x1 - a/2, 2.0) + pow(x2 - a/2, 2.0) - a * a) << endl;
-	}
- 
+		string inputStr = "./dependens/inputData";
+		string outputStr = "./dependens/outputData";
+		size_t szOfMatrix = 2;
+		auto print = [&] (double x1, double x2, double a, ofstream& o) {
+			o << (2 * x2 * x1) << " " << (x1 * x1 + a * a) << " " << (x1 * x1 + a * a) * x2 - a * a * a << endl;
+			o << (2 * x1 - a) << " " << (2 * x2 - a) << " " << (pow(x1 - a/2, 2.0) + pow(x2 - a/2, 2.0) - a * a) << endl;
+		};
 
-        for (size_t iter = 0; iter < 1000; iter++) {
-            log << "x_[" << iter << "] = (" << x_0[0] << ", " << x_0[1] << "); ";
-	    o << szOfMatrix << endl;
-            TSolve solve(inputStr, outputStr);
-            if (!solve.ToSolveByGauss()) {
-		ifstream in(outputStr.c_str(), ios::in);
-                vector<double> tempVec;
-		double tmp;
-		while (1) {
-		    in >> tmp;
-		    if (in.eof())
-		        break;
-                    tempVec.push_back(tmp);
-		}
-		solution = TVector(tmpVec);
+		auto findMax = [] (const vector<double>& v) -> double {
+			double res = abs(v.back());
+			for (size_t i = 0; i < v.size(); ++i)
+				res = max(res, abs(v[i]));
+			return res;
+		};
+
+		double eps_k = EPS + 1;
+#ifdef DEBUG
+        cout << __LINE__ << endl;
+#endif        
+	    for (size_t iter = 0; iter < 1000; iter++) {
+		    log << "x_[" << iter << "] = (" << x_0[0] << ", " << x_0[1] << "); ";
+			ofstream o(inputStr.c_str(), ios::out);
+		    o << szOfMatrix << endl;
+			print(x_0[0], x_0[1], A, o);
+		    o.close();
+#ifdef DEBUG
+        cout << __LINE__ << endl;
+#endif        
+			TSolve solve(inputStr, outputStr);
+			if (!solve.ToSolveByGauss()) {
+				ifstream in(outputStr.c_str(), ios::in);
+	            vector<double> tempVec;
+				double tmp;
+				while (1) {
+				    in >> tmp;
+				    if (in.eof())
+				        break;
+	                tempVec.push_back(tmp);
+				}
+				eps_k = findMax(tempVec);
+				solution = TVector(tempVec);
+				in.close();
+		    }
+	 	    else {
+	           cerr << "Some troubles..." << endl;
+		       exit(-1);
+	 	    }
+#ifdef DEBUG
+        cout << __LINE__ << endl;
+#endif        
+		    solution = x_0 + solution;
+		    log << "x_[" << iter + 1 << "] = (" << solution[0] << ", " << solution[1] << "); ";
+		    log << "eps[k] = " << eps_k << endl;
+	        if (eps_k >= EPS) {
+				x_0 = solution;
+	        }
+	        else break;
 	    }
- 	    else {
-               cerr << "Some troubles..." << endl;
-	       exit(-1);
- 	    }
-            double eps_k = findMax(solution);
-	    solution = x_0 + solution;
-	    log << "x_[" << iter + 1 << "] = (" << solution[0] << ", " << solution[1] << "); ";
-	    log << "eps[k] = " << eps_k << endl;
-            if (abs(F(x_new)) < EPS && abs(x_new - x_0) < EPS) {
-                solve = x_new;
-                break;
-            }
-            else {
-                x_0 = x_new;
-            }
-        }
         log.close();
-        out << "solve: " << solve << endl;
+        out << "solve: ";
+		solution.Print(out);
     }
 private:
     ifstream in;
@@ -212,10 +228,9 @@ int main(int argc, char* argv[]) {
     }
     try {
         TSolveSystem solve(pathFrom, pathTo);
-        solve.ToSolveBySimpleIter();
-//        solve.ToSolveByNewtoon();
+//        solve.ToSolveBySimpleIter();
+        solve.ToSolveByNewtoon();
     }
-//    catch (const BadFileExcept& e) {
     catch (const exception& e) {
         cerr << e.what() << endl;
         return -1;

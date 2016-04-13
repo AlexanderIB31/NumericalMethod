@@ -3,7 +3,7 @@ CFLAGS = -c -std=c++11 -Wall -pedantic
 DEP = dependens
 OBJ = obj
 DELFILES = *.o *~ solve *.log res*
-DELETE = rm -rf
+DELETE = rm -f
 
 ifeq ($(arg), 2)
 all: $(OBJ)/_tmp.o $(OBJ)/_TSolve.o $(OBJ)/_TVector.o $(OBJ)/_TMatrix.o $(OBJ)/_func.o $(OBJ)/func.o
@@ -38,14 +38,4 @@ $(OBJ)/func.o: func.cpp
 endif
 
 clean:
-	$(DELETE) $(DELFILES)
-
-prepare:
-	$(DELETE) $(OBJ) $(DEP)
-	mkdir $(OBJ)
-	mkdir $(DEP)
-	cp ~/src/GitHub/NumericalMethod/labs/lab1/TSolve.* ./$(DEP)/
-	cp ~/src/GitHub/NumericalMethod/labs/lab1/TMatrix.* ./$(DEP)/
-	cp ~/src/GitHub/NumericalMethod/labs/lab1/TVector.* ./$(DEP)/
-	cp ~/src/GitHub/NumericalMethod/labs/lab1/func.* ./$(DEP)/
-
+	$(DELETE) $(DELFILES) $(OBJ)/*
