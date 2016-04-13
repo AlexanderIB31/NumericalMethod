@@ -7,7 +7,7 @@
 // (x1 - a/2) ^ 2 + (x2 - a/2) ^ 2 - a ^ 2 = 0
 //
 
-#define DEBUG 1
+//#define DEBUG 1
 
 
 class BadFileExcept : public exception {
