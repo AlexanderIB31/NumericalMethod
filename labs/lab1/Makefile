@@ -1,16 +1,10 @@
 CC      =g++
 CFLAGS  =-c -Wall -pedantic -std=c++11
 
-all: func.o TMatrix.o TVector.o TSolve.o solve1.o
+all: func.o TMatrix.o temp.o
 	$(CC) $^ -o solve
 
-solve1.o: solve1.cpp
-	$(CC) $(CFLAGS) $<
-
-TSolve.o: TSolve.cpp
-	$(CC) $(CFLAGS) $<
-
-TVector.o: TVector.cpp
+temp.o: temp.cpp
 	$(CC) $(CFLAGS) $<
 
 TMatrix.o: TMatrix.cpp
@@ -20,4 +14,4 @@ func.o: func.cpp
 	$(CC) $(CFLAGS) $<
 
 clean:
-	rm -rf *.o *~ solve *.log result
+	rm -rf *.o *~ temp *.log result

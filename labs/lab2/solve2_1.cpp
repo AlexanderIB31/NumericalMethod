@@ -43,7 +43,7 @@ public:
             solve = fi(x_0);
             log << "x_" << iter << " = " << x_0 << "; ";
             log << "x_" << iter + 1 << " = " << solve << "; ";
-            eps_k = q / (1 - q) * abs(solve - x_0);
+            eps_k = q / (1.0 - q) * abs(solve - x_0);
             log << "eps_" << iter << " = " << eps_k << endl;
             if (eps_k < EPS)
                 break;
@@ -67,7 +67,7 @@ public:
         double solve = _b + 1.0;
         for (size_t iter = 0; iter < 1000; iter++) {
             double x_new = x_0 - F(x_0) / DF(x_0);
-            log << "x_" << iter << " = " << x_new << endl;
+            log << "x_" << iter + 1 << " = " << x_new << endl;
             if (abs(F(x_new)) < EPS && abs(x_new - x_0) < EPS) {
                 solve = x_new;
                 break;
@@ -100,8 +100,8 @@ int main(int argc, char* argv[]) {
     }
     try {
         TSolve solve(pathFrom, pathTo);
-        solve.ToSolveBySimpleIter();
-//        solve.ToSolveByNewtoon();
+//        solve.ToSolveBySimpleIter();
+        solve.ToSolveByNewtoon();
     }
 //    catch (const BadFileExcept& e) {
     catch (const exception& e) {
