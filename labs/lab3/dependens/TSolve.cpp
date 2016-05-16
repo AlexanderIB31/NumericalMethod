@@ -98,10 +98,6 @@ void TSolve::_findSolve(double P, double Q, int n, TVector& x, ofstream& log) {
         log << "Q_" << n << " = " << Q << endl;
     } else {
         try {
-//            _findSolve(-_matrA[n][n + 1] / (_matrA[n][n - 1] * P + _matrA[n][n]),
-//                        (_vecB[n] - _matrA[n][n - 1] * Q) / (_matrA[n][n - 1] * P 
-//                            + _matrA[n][n]),
-//                        n + 1, x, log);
             _findSolve(-_matrA[n][2] / (_matrA[n][0] * P + _matrA[n][1]),
                         (_vecB[n] - _matrA[n][0] * Q) / (_matrA[n][0] * P + _matrA[n][1]),
                         n + 1, x, log);
