@@ -15,7 +15,6 @@ int main(int argc, char* argv[]) {
         cerr << e.what() << endl;
         return -1;
     }
-
     TSolve solve(pFrom, pTo);
     /*
             0 --- LU method
