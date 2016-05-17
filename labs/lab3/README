@@ -1,3 +1,5 @@
 solve3_1: ./solve
 solve3_2: ./solve test3_2
 solve3_3: ./solve test3_3 [1|2]
+solve3_4: ./solve test3_4
+solve3_5: ./solve test3_5
