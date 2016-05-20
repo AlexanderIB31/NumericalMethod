@@ -6,8 +6,7 @@ kernel void MultMatrix(global float* mA,
                        private unsigned int sz)
 {
     int row = get_global_id(0);
-    int col = row - row / sz * sz;
-    row /= sz;
+    int col = get_global_id(1);
     float temp = 0;
     for (int k = 0; k < sz; ++k)
     {
@@ -22,7 +21,6 @@ kernel void FindMaxABS(global float* a,
 					   private unsigned int sz)
 {
     int pos = get_global_id(0);
-    int col = 0;
     int row = pos * sz;
     float _max = -1;
 	int posI, posJ;
