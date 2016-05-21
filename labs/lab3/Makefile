@@ -2,7 +2,7 @@ CC = g++
 CFLAGS = -std=c++11 -Wall -pedantic
 DEP = dependens
 OBJ = obj
-DELFILES = *.o *~ solve *.log res* solution* plotData*
+DELFILES = *.o *~ solve *.log res* solution* plotData* $(DEP)/inputData $(DEP)/outputData
 DELETE = rm -f
 
 ifeq ($(arg), 1)
