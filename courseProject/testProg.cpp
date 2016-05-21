@@ -196,7 +196,7 @@ void RotateMethodGPU() {
     cl_float*   matrixRotateT   = NULL;
     
     ofstream out(plotFileGPU, ios::out);
-    for (cl_uint cnt = 1; cnt <= 50; ++cnt) {
+    for (cl_uint cnt = 1; cnt <= 100; ++cnt) {
         auto start = chrono::system_clock::now();
 
         cl_uint szMatrix = cnt;
@@ -436,7 +436,7 @@ void RotateMethodCPU() {
         }
     };
     ofstream out(plotFileCPU, ios::out);
-    for (size_t cnt = 1; cnt <= 50; ++cnt) {
+    for (size_t cnt = 1; cnt <= 100; ++cnt) {
         auto start = chrono::system_clock::now();
 
         size_t szMatrix = cnt;
