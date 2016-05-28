@@ -1,5 +1,6 @@
 #include "dependences/TMethodEuler.h"
 #include "dependences/TMethodRungeKutta.h"
+#include "dependences/TMethodAdams.h"
 
 int main(int argc, char* argv[]) {
 	if (argc != 2) {
@@ -11,6 +12,7 @@ int main(int argc, char* argv[]) {
 	{
 		TMethodEuler solution(outFileName + "Euler");
 		solution.ToSolve();
+		solution.RungeRomberg();
 		cout << "Solution was completed![Euler]" << endl;
 	}
 	
@@ -19,6 +21,14 @@ int main(int argc, char* argv[]) {
 		TMethodRungeKutta solution(outFileName + "Runge-Kutta");
 		solution.ToSolve();
 		cout << "Solution was completed![Runge-Kutta]" << endl;
+	}
+
+	/* Adams method */
+	{
+		TMethodAdams solution(outFileName + "Adams");
+		solution.ToSolve();
+		solution.RungeRomberg();
+		cout << "Solution was completed![Adams]" << endl;
 	}
 	
 	return 0;

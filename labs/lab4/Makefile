@@ -5,7 +5,7 @@ OBJ = obj
 DELFILES = *.o *~ solve *.log res*
 DELETE = rm -f
 
-all: solve4_1.cpp $(OBJ)/euler.o $(OBJ)/runge-kutta.o
+all: solve4_1.cpp $(OBJ)/euler.o $(OBJ)/runge-kutta.o $(OBJ)/adams.o
 	$(CC) $(CFLAGS) $^ -o solve
 
 $(OBJ)/euler.o: $(DEP)/TMethodEuler.cpp
@@ -13,6 +13,9 @@ $(OBJ)/euler.o: $(DEP)/TMethodEuler.cpp
 
 $(OBJ)/runge-kutta.o: $(DEP)/TMethodRungeKutta.cpp
 	$(CC) -c $(CFLAGS) $^ -o $(OBJ)/runge-kutta.o
+
+$(OBJ)/adams.o: $(DEP)/TMethodAdams.cpp
+	$(CC) -c $(CFLAGS) $^ -o $(OBJ)/adams.o	
 
 clean:
 	$(DELETE) $(DELFILES) $(OBJ)/*
