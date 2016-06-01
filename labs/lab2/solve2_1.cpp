@@ -100,8 +100,8 @@ int main(int argc, char* argv[]) {
     }
     try {
         TSolve solve(pathFrom, pathTo);
-//        solve.ToSolveBySimpleIter();
-        solve.ToSolveByNewtoon();
+        solve.ToSolveBySimpleIter();
+        //solve.ToSolveByNewtoon();
     }
 //    catch (const BadFileExcept& e) {
     catch (const exception& e) {

@@ -1,0 +1,8 @@
+Matrix A:
+5 -5 -6 
+-1 -8 -5 
+2 7 -3 
+
+eigenvalue[1] = -5.42 + 5.83i
+eigenvalue[2] = -5.42 - 5.83i
+eigenvalue[3] = 4.83

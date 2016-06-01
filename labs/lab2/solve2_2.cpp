@@ -204,8 +204,8 @@ int main(int argc, char* argv[]) {
     }
     try {
         TSolveSystem solve(pathFrom, pathTo);
-        solve.ToSolveBySimpleIter();
-//        solve.ToSolveByNewtoon();
+        //solve.ToSolveBySimpleIter();
+        solve.ToSolveByNewtoon();
     }
     catch (const exception& e) {
         cerr << e.what() << endl;

@@ -1,0 +1,192 @@
+\textbf{Метод 1 --- Интерполяция}\\
+
+\textbf{Задание}
+
+Используя таблицу значений $Y_i$ функции $y=f(x)$, вычисленных в точках $X_i$, $i=0,...,3$ построить интерполяционные многочлены Лагранжа и Ньютона, проходящие через точки ${X_i, Y_i}$. Вычислить значение погрешности интерполяции в точке $X^*$.\\
+
+\textbf{Вариант:} 3
+
+$y=tg(x)$, а) $X_i=0, \frac{\pi}{8}, \frac{2\pi}{8}, \frac{3\pi}{8}$; б) $X_i=0, \frac{\pi}{8}, \frac{\pi}{3}, \frac{3\pi}{8}$; $X^*=\frac{3\pi}{16}$\\
+
+\textbf{Описание алгоритма}
+
+Пусть на отрезке $[a, b]$ задано множество несовпадающих точек $x_i$ (интерполяционных узлов), в которых известны значения функции $f_i=f(x_i), i=0,...,n$. Приближающая функция $\varphi(x, a)$ такая, что выполняются равенства
+
+$$
+\varphi(x_i, a_0, ..., a_n)=f(x_i)=f_i, i=0,...,n
+$$
+
+называется интерполяционной.
+
+Наиболее часто в качестве приближающей функции используют многочлены степени $n$:
+
+$$
+P_n(x)=\sum\limits_{i=0}^na_ix^i
+$$
+
+Произвольный многочлен может быть записан в виде:
+
+$$
+L_n(x)=\sum\limits_{i=0}^nf_il_i(x)
+$$
+
+Здесь $l_i(x)$ --- многочлены степени $n$, так называемые лагранжевы многочлены влияния, которые удовлетворяют условию $l_i(x_j)=\begin{cases}
+1, i = j\\
+0, i \neq j
+\end{cases}$ и, соответственно, $l_i(x)=\prod\limits_{j=0,j \neq i}^n\frac{(x-x_i)}{(x_i-x_j)}$, а интерполяционный многочлен запишется в виде:
+
+$$
+L_n(x)=\sum\limits_{i=0}^nf_i\prod\limits_{j=0, j \neq i}^n\frac{(x-x_i)}{(x_i-x_j)}
+$$
+
+\pagebreak
+
+Данный интерполяционный многочлен называется интерполяционным многочленом Лагранжа.\\
+
+Введем понятие разделенной разности. Разделенные разности нулевого порядка совпадают со значениями функции в узлах. Разделенные разности первого порядка обозначаются $f(x_i,x_j)$ и определяются через разделенные разности нулевого порядка:
+
+$$
+f(x_i, x_j)=\frac{f_i-f_j}{x_i-x_j}
+$$
+
+разделенные разности второго порядка определяются через разделенные разности первого порядка:
+
+$$
+f(x_i,x_j,x_k)=\frac{f(x_i,x_j)-f(x_j,x_k)}{x_i-x_k}
+$$
+
+Разделенная разность порядка $n-k+2$ определяется соотношениями:
+
+$$
+f(x_i,x_j,x_k,...,x_{n-1},x_n)=\frac{f(x_i,x_j,x_k,...,x_{n-1})-f(x_j,x_k,...,x_n)}{x_i-x_n}
+$$
+
+Пусть известны значения аппроксимируемой функции $f(x)$ в точках $x_0,x_1,...,x_n$. Интерполяционный многочлен, значения которого в узлах интерполяции совпадают со значениями функции $f(x)$ может быть записан в виде:\\
+
+$P_n(x)=f(x_0)+(x-x_0)f(x_1,x_0)+(x-x_0)(x-x_1)f(x_0,x_1,x_2)+...+$\\
+$+(x-x_0)(x-x_1)...(x-x_n)f(x_0,x_1,...,x_n)$\\
+
+Данная запись многочлена есть так называемый интерполяционный многочлен Ньютона.\\
+
+\textbf{Реализация}\\
+
+\textbf{Лагранж}
+\begin{lstlisting}
+void PolynomialLagrange() {
+	auto Y = [](double x) -> double { return tan(x); };
+	auto Product = [](const vector<double>& X, double curX, size_t pos) -> double {
+		double temp = 1.0;
+		for (size_t i = 0; i < 4; ++i) {
+			if (i == pos) continue;
+			temp *= (curX - X[i]) / (X[pos] - X[i]);
+		}
+		return temp;
+	};
+
+	vector<double> X;
+	// task a)
+	/*
+	X.push_back(0);
+	X.push_back(1.0 * M_PI / 8);
+	X.push_back(2.0 * M_PI / 8);
+	X.push_back(3.0 * M_PI / 8);
+	*/
+	//task b)
+	X.push_back(0);
+	X.push_back(1.0 * M_PI / 8);
+	X.push_back(1.0 * M_PI / 3);
+	X.push_back(3.0 * M_PI / 8);
+
+	double perfectX = 3.0 * M_PI / 16;
+	double sum = 0.0;
+	for (size_t i = 0; i < 4; ++i) {
+		sum += Y(X[i]) * Product(X, perfectX, i);	
+	}
+	cout << "L(" << perfectX << ") = " << sum << endl;
+	cout << "y(" << perfectX << ") = " << Y(perfectX) << endl;
+	cout << "|L(" << perfectX << ") - y(" << perfectX << ")| = " << fabs(Y(perfectX) - sum) << endl;
+}
+
+\end{lstlisting}
+\vspace{0.5cm}
+
+\textbf{Ньютон}
+\begin{lstlisting}
+void PolynomialNewtoon() {
+	auto Y = [](double x) -> double { return sin(M_PI * x / 6); };
+	function<double(const vector<double>&, double, size_t, size_t)> FuncY; 
+	FuncY = [Y, &FuncY](const vector<double>& X, double curX, size_t start, size_t end) -> double {
+		if (start == end) {
+			return Y(X[start]);
+		}
+		else {
+			return (FuncY(X, curX, start, end - 1) - FuncY(X, curX, start + 1, end)) / (X[start] - X[end]);
+		}
+	};
+	auto Product = [](const vector<double>& X, double curX, size_t sz) -> double {
+		double prod = 1.0;
+		for (size_t i = 0; i < sz; ++i)
+			prod *= (curX - X[i]);
+		return prod;
+	};
+
+	vector<double> X;
+	// task a)
+	/*
+	X.push_back(0);
+	X.push_back(1.0 * M_PI / 8);
+	X.push_back(2.0 * M_PI / 8);
+	X.push_back(3.0 * M_PI / 8);
+	*/
+	//task b)
+	X.push_back(0);
+	X.push_back(1.0 * M_PI / 8);
+	X.push_back(1.0 * M_PI / 3);
+	X.push_back(3.0 * M_PI / 8);
+	
+
+	double perfectX = 1.5;
+	double sum = 0.0;
+	for (size_t i = 1; i < 4; ++i) {
+		sum += FuncY(X, perfectX, 0, i) * Product(X, perfectX, i);
+	}
+	cout << "P(" << perfectX << ") = " << sum << endl;
+	cout << "y(" << perfectX << ") = " << Y(perfectX) << endl;
+	cout << "|P(" << perfectX << ") - y(" << perfectX << ")| = " << fabs(Y(perfectX) - sum) << endl;
+
+}
+\end{lstlisting}
+\vspace{0.5cm}
+
+\textbf{Тестирование}\\
+
+
+\textbf{Выходной файл}
+\begin{verbatim}
+а)
+Polynomial Lagrange
+L(0.589049) = 0.644607
+y(0.589049) = 0.668179
+|L(0.589049) - y(0.589049)| = 0.0235719
+****************************************
+Polynomial Newtoon
+P(1.5) = 0.70664
+y(1.5) = 0.707107
+|P(1.5) - y(1.5)| = 0.000467104
+****************************************
+
+б)
+Polynomial Lagrange
+L(0.589049) = 0.585251
+y(0.589049) = 0.668179
+|L(0.589049) - y(0.589049)| = 0.0829278
+****************************************
+Polynomial Newtoon
+P(1.5) = 0.706792
+y(1.5) = 0.707107
+|P(1.5) - y(1.5)| = 0.000314796
+****************************************
+\end{verbatim}
+
+
+\pagebreak

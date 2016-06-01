@@ -85,18 +85,18 @@ int main(int argc, char* argv[]) {
 
 	cout << "Rectangle method (h1): " << rectangleMethod(X1, Xn, h1) << endl;
 	cout << "Rectangle method (h2): " << rectangleMethod(X1, Xn, h2) << endl;
-	cout << "estimate: ";
-	if (h1 >= h2) cout << rectangleMethod(X1, Xn, h2) + (rectangleMethod(X1, Xn, h2) - rectangleMethod(X1, Xn, h1)) / (pow(k, 2.0) - 1.0) << endl;
-	else cout << rectangleMethod(X1, Xn, h1) + (rectangleMethod(X1, Xn, h1) - rectangleMethod(X1, Xn, h2)) / (pow(k, 2.0) - 1.0) << endl;
+	cout << "Runge-Romberg estimate: ";
+	if (h1 >= h2) cout << fabs(rectangleMethod(X1, Xn, h2) + (rectangleMethod(X1, Xn, h2) - rectangleMethod(X1, Xn, h1)) / (pow(k, 2.0) - 1.0)) << endl;
+	else cout << fabs(rectangleMethod(X1, Xn, h1) + (rectangleMethod(X1, Xn, h1) - rectangleMethod(X1, Xn, h2)) / (pow(k, 2.0) - 1.0)) << endl;
 	cout << "Trapezoidal method (h1): " << trapezoidalMethod(X1, Xn, h1) << endl;
 	cout << "Trapezoidal method (h2): " << trapezoidalMethod(X1, Xn, h2) << endl;
-	cout << "estimate: ";	
-	if (h1 >= h2) cout << trapezoidalMethod(X1, Xn, h2) + (trapezoidalMethod(X1, Xn, h2) - trapezoidalMethod(X1, Xn, h1)) / (pow(k, 2.0) - 1.0) << endl;
-	else cout << trapezoidalMethod(X1, Xn, h1) + (trapezoidalMethod(X1, Xn, h1) - trapezoidalMethod(X1, Xn, h2)) / (pow(k, 2.0) - 1.0) << endl;
+	cout << "Runge-Romberg estimate: ";	
+	if (h1 >= h2) cout << fabs(trapezoidalMethod(X1, Xn, h2) + (trapezoidalMethod(X1, Xn, h2) - trapezoidalMethod(X1, Xn, h1)) / (pow(k, 2.0) - 1.0)) << endl;
+	else cout << fabs(trapezoidalMethod(X1, Xn, h1) + (trapezoidalMethod(X1, Xn, h1) - trapezoidalMethod(X1, Xn, h2)) / (pow(k, 2.0) - 1.0)) << endl;
 	cout << "Simpson method (h1): " << SimpsonMethod(X1, Xn, h1) <<  endl;	
 	cout << "Simpson method (h2): " << SimpsonMethod(X1, Xn, h2) <<  endl;	
-	cout << "estimate: ";	
-	if (h1 >= h2) cout << SimpsonMethod(X1, Xn, h2) + (SimpsonMethod(X1, Xn, h2) - SimpsonMethod(X1, Xn, h1)) / (pow(k, 4.0) - 1.0) << endl;
-	else cout << SimpsonMethod(X1, Xn, h1) + (SimpsonMethod(X1, Xn, h1) - SimpsonMethod(X1, Xn, h2)) / (pow(k, 4.0) - 1.0) << endl;	
+	cout << "Runge-Romberg estimate: ";	
+	if (h1 >= h2) cout << fabs(SimpsonMethod(X1, Xn, h2) + (SimpsonMethod(X1, Xn, h2) - SimpsonMethod(X1, Xn, h1)) / (pow(k, 4.0) - 1.0)) << endl;
+	else cout << fabs(SimpsonMethod(X1, Xn, h1) + (SimpsonMethod(X1, Xn, h1) - SimpsonMethod(X1, Xn, h2)) / (pow(k, 4.0) - 1.0)) << endl;	
 	return 0;
 }

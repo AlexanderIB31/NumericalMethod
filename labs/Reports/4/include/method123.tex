@@ -1,0 +1,516 @@
+\textbf{Метод 1 --- Метод Эйлера/Метод Рунге-Кутты/Метод Адамса}\\
+
+\textbf{Задание}
+
+Реализовать методы Эйлера, Рунге-Кутты и Адамса 4--го порядка в виде программ, задавая в качестве входных данных шаг сетки $h$. С использованием разработанного программного обеспечения решить задачу Коши для ОДУ 2--го порядка на указанном отрезке. Оценить погрешность численного решения с использованием метода Рунге-Ромберга и путем сравнения с точным решением.\\
+
+\textbf{Вариант:} 3
+
+Задача Коши:
+
+$y''-2y-4x^2\exp^{x^2}=0$\\
+$y(0)=3$\\
+$y'(0)=0$\\
+$x \in [0, 1], h=0.1$\\
+
+Точное решение:
+
+$y=\exp^{x^2}+\exp^{x\sqrt{2}}+\exp^{-x\sqrt{2}}$\\
+
+\textbf{Описание алгоритма}
+
+Рассматривается задача Коши для одного дифференциального уравнения первого порядка разрешенного относительно производной\\
+
+$y'=f(x, y)$\\
+$y(x_0)=y_0$\\
+
+Требуется найти решение на отрезке $[a, b]$, где $x_0=a$.
+
+Введем разностную сетку на отрезке $[a, b] \quad \Omega^{(k)}={x_k=x_0+hk}, k=0,1,...,N, h=|b-a|/N$.\\
+
+Точки $x_k$ --- называются \textit{узлами} разностной сетки, расстояния между узлами --- \textit{шагом} разностной сетки $(h)$, а совокупность значений какой--либо величины заданных в узлах сетки называется \textit{сеточной функцией} $y^{(h)}={y_k, k=0,1,...,N}$.
+
+Приближенное решение задачи Коши будем искать численно в виде сеточной функции $y^{(h)}$. Для оценки погрешности приближенного численного решения $y^{(h)}$ будем рассматривать это решение как элемент $N+1$--мерного линейного векторного пространства с какой либо нормой. В качестве погрешности решения принимается норма элемента этого пространства $\delta^{(h)}=y^{(h)}-[y]^{(h)}$, где $[y]^{(h)}$ --- точное решение задачи в узлах расчетной сетки. Таким образом $\varepsilon_h=\|\delta^{(h)}\|$.\\
+
+\textbf{Метод Эйлера}\\
+
+$y_{k+1}=hf(x_k, y_k, z_k)$\\
+$z_{k+1}=hg(x_k, y_k, z_k)$\\
+
+\textbf{Метод Рунге-Кутты}\\
+
+Семейство явных методов Рунге-Кутты $p$--го порядка записывается в виде совокупности формул:\\
+
+$y_{k+1}=y_k+\Delta y_k$\\
+$\Delta y_k=\sum\limits_{i=1}^pc_iK_i^k$ \qquad (1)\\
+$K_i^k=hf(x_k+a_ih, y_k+h\sum\limits_{j=1}^{i-1}b_{ij}K_j^k)$\\
+$i=2,3,...,p$\\
+
+Параметры $a_i, b_{ij}, c_i$ подбираются так, чтобы значение $y_{k+1}$, рассчитанное по соотношению (1) совпадало со значением разложения в точке $x_{k+1}$ точного решения в ряд Тейлора с погрешностью $O(h^{p+1})$.\\
+
+\textbf{Метод Рунге-Кутты 4--го порядка точности}\\
+
+$(p=4, a_1=0, a_2=\frac{1}{2}, a_3=\frac{1}{2}, a_4=1, b_{21}=\frac{1}{2}, b_{31}=0, b_{32}=\frac{1}{2}, b_{41}=0, b_{42}=0, b_{43}=\frac{1}{2}, c_1=\frac{1}{6}, c_2=\frac{1}{3}, c_3=\frac{1}{3}, c_4=\frac{1}{6})$\\
+
+$y_{k+1}=y_k+\Delta y_k$\\
+
+$\Delta y_k=\frac{1}{6}(K_1^k+2K_2^k+2K_3^k+K_4^k)$\\
+
+$K_1^k=hf(x_k, y_k)$\\
+
+$K_2^k=hf(x_k+\frac{1}{2}h, y_k+\frac{1}{2}K_1^k)$\\
+
+$K_3^k=hf(x_k+\frac{1}{2}h, y_k+\frac{1}{2}K_2^k)$\\
+
+$K_4^k=hf(x_k+h, y_k+K_3^k)$\\
+
+\textbf{Метод Адамса}\\
+
+При использовании интерполяционного многочлена 3--ей степени построенного по значениям подынтегральной функции в последних четырех узлах получим метод Адамса четвертого порядка точности:\\
+
+$y_{k+1}=y_k+\frac{h}{24}(55f_k-59f_{k-1}+37f_{k-2}-9f_{k-3})$\\
+
+где $f_k$ значение подынтегральной функции в узле $x_k$.
+
+Метод Адамса как и все многошаговые методы не является самостартующим, т.е. для того, чтобы использовать метод Адамса необходимо иметь решения в первых четырех узлах. В узле $x_0$ решение $y_0$ известно из начальных условий, а в других трех узлах $x_1, x_2, x_3$ решения $y_1, y_2, y_3$ можно получить с помощью подходящего одношагового метода, например: метода Рунге-Кутты четвертого порядка.\\
+
+\textbf{Реализация}\\
+
+\begin{lstlisting}
+void TMethodRungeKutta::ToSolve() {
+	string separator = "*************************************************************************************************";
+	double x0 = this->_a, y0 = this->_funcY0, z0 = this->_funcZ0;
+	size_t N = (this->_b - this->_a) / this->_h;
+	double K1, K2, K3, K4, L1, L2, L3, L4;
+	log << "h = " << this->_h << "; N = " << N << endl;
+	double y_k = y0;
+	double x_k = x0;
+	double z_k = z0;
+	double deltaZ, deltaY;
+	out.precision(5);
+	log.precision(5);
+	out << "\tx\ty" << endl;
+	log << "\tx\ty\tz\t\td(y)\t\td(z)\t\ty(true)\t\teps\t\terr" << endl;
+	for (size_t k = 0; k < N; ++k) {
+		L1 = this->_h * this->_FuncExpression(x_k, y_k);
+		K1 = this->_h * z_k;		
+		//log << fixed << k << "/" << 1 << "\t" << x_k << "\t" << y_k << "\t" << K1 << "\t\t\t\t" 
+		//	<< this->_FuncY(x_k) << "\t" << fabs(this->_FuncY(x_k) - y_k) << endl;		
+		K2 = this->_h * (z_k + 0.5 * L1);
+		L2 = this->_h * this->_FuncExpression(x_k + 0.5 * this->_h, y_k + 0.5 * K1);
+		//log << fixed << k << "/" << 2 << "\t" << x_k + 0.5 * this->_h << "\t" << y_k + 0.5 * K1 << "\t" << K2 << endl;
+		K3 = this->_h * (z_k + 0.5 * L2);
+		L3 = this->_h * this->_FuncExpression(x_k + 0.5 * this->_h, y_k + 0.5 * K2);
+		//log << fixed << k << "/" << 3 << "\t" << x_k + 0.5 * this->_h << "\t" << y_k + 0.5 * K2 << "\t" << K3 << endl;
+		K4 = this->_h * (z_k + L3);
+		L4 = this->_h * this->_FuncExpression(x_k + this->_h, y_k + K3);
+		deltaY = 1.0 / 6.0 * (K1 + 2.0 * K2 + 2.0 * K3 + K4);
+		deltaZ = 1.0 / 6.0 * (L1 + 2.0 * L2 + 2.0 * L3 + L4);
+		//log << fixed << k << "/" << 4 << "\t" << x_k + this->_h << "\t" << y_k + K3 << "\t" << K4 
+		//	<< "\t" << delta << "\t" << fabs((K2 - K3) / (K1 - K2)) << endl;
+		out << fixed << k << "\t" << x_k << "\t" << y_k << endl;
+		log << fixed << k << "\t" << x_k << "\t" << y_k << "\t" << z_k 
+			<< "\t\t" << deltaY << "\t\t" << deltaZ << "\t\t" << this->_FuncY(x_k) 
+			<< "\t\t" << fabs(this->_FuncY(x_k) - y_k) << "\t\t" << fabs((K2 - K3) / (K1 - K2)) << endl;
+		x_k += this->_h;
+		z_k += deltaZ;
+		y_k += deltaY;		
+		log << separator << endl;
+	}	
+	out << fixed << N << "\t" << x_k << "\t" << y_k << endl;
+	log << fixed << N << "\t" << x_k << "\t" << y_k << "\t" 
+		<< z_k << "\t\t\t\t\t" << this->_FuncY(x_k) << "\t\t" 
+		<< fabs(this->_FuncY(x_k) - y_k) << "\t\t" 
+		<< fabs((K2 - K3) / (K1 - K2)) << endl;
+}
+
+void TMethodEuler::ToSolve() {
+	double x0 = this->_a, y0 = this->_funcY0, z0 = this->_funcZ0;
+	size_t N = (this->_b - this->_a) / this->_h;
+	log << "h = " << this->_h << "; N = " << N << endl;
+	double y_k = y0;
+	double x_k = x0;
+	double z_k = z0;
+	double deltaZ = this->_h * this->_FuncExpression(x_k, y_k);
+	double deltaY = this->_h * z_k;
+	out.precision(5);
+	log.precision(5);
+	out << "\tx\ty\tz" << endl;
+	out << 0 << fixed << "\t" << x0 << "\t" << y0 << "\t" << z0 << endl;
+	log << "\tx\ty\tz\t\td(z)\t\td(y)\t\ty(true)\t\teps" << endl;
+	log << 0 << fixed << "\t" << x0 << "\t" << y0 << "\t" << z0 << "\t\t" << deltaZ 
+		<< "\t\t" << deltaY << "\t\t" << this->_FuncY(x_k) << "\t\t" << fabs(this->_FuncY(x_k) - y_k) << endl;
+	for (size_t k = 1; k < N; ++k) {		
+		deltaY = this->_h * z_k;
+		z_k = z_k + deltaZ;
+		y_k = y_k + deltaY;
+		x_k += this->_h;
+		deltaZ = this->_h * this->_FuncExpression(x_k, y_k);
+		out << fixed << k << "\t" << x_k << "\t" << y_k << "\t" << z_k << endl;
+		log << k << fixed << "\t" << x_k << "\t" << y_k 
+			<< "\t" << z_k << "\t\t" << deltaZ << "\t\t" << deltaY << "\t\t" << this->_FuncY(x_k) 
+			<< "\t\t" << fabs(this->_FuncY(x_k) - y_k) << endl;
+	}
+	deltaY = this->_h * z_k;
+	z_k = z_k + deltaZ;	
+	y_k = y_k + deltaY;
+	x_k += this->_h;
+	deltaZ = this->_h * this->_FuncExpression(x_k, y_k);
+	out << fixed << N << "\t" << x_k << "\t" << y_k << "\t" << z_k << endl;
+	log << N << fixed << "\t" << x_k << "\t" << y_k 
+			<< "\t" << z_k << "\t\t\t\t\t\t" << this->_FuncY(x_k) 
+			<< "\t\t" << fabs(this->_FuncY(x_k) - y_k) << endl;
+}
+
+void TMethodEuler::RungeRomberg() {
+	double x0 = this->_a, y0 = this->_funcY0, z0 = this->_funcZ0;
+	double h1 = this->_h;
+	double h2 = h1 / 2;
+	size_t N1 = (this->_b - this->_a) / h1;
+	size_t N2 = (this->_b - this->_a) / h2;
+	log << "h1 = " << h1 << "; N1 = " << N1 << endl;
+	log << "h2 = " << h2 << "; N2 = " << N2 << endl;
+	double y_k = y0;
+	double x_k = x0;
+	double z_k = z0;
+	double deltaZ = h1 * this->_FuncExpression(x_k, y_k);
+	double deltaY = h1 * z_k;
+	out.precision(5);
+	log.precision(5);
+	vector<double> X, Y1, Y2;
+	for (size_t k = 1; k < N1; ++k) {		
+		X.push_back(x_k);
+		Y1.push_back(y_k);		
+		deltaY = h1 * z_k;
+		z_k = z_k + deltaZ;
+		y_k = y_k + deltaY;
+		x_k += h1;
+		deltaZ = h1 * this->_FuncExpression(x_k, y_k);
+	}
+	deltaY = h1 * z_k;
+	z_k = z_k + deltaZ;	
+	y_k = y_k + deltaY;
+	x_k += h1;
+	X.push_back(x_k);
+	Y1.push_back(y_k);			
+	deltaZ = h1 * this->_FuncExpression(x_k, y_k);
+	y_k = y0;
+	x_k = x0;
+	z_k = z0;
+	deltaZ = h2 * this->_FuncExpression(x_k, y_k);
+	deltaY = h2 * z_k;
+	for (size_t k = 1; k < N2; ++k) {		
+		if (!(k & 1)) {
+			Y2.push_back(y_k);		
+		}
+		deltaY = h2 * z_k;
+		z_k = z_k + deltaZ;
+		y_k = y_k + deltaY;
+		x_k += h2;
+		deltaZ = h2 * this->_FuncExpression(x_k, y_k);
+	}
+	deltaY = h2 * z_k;
+	z_k = z_k + deltaZ;	
+	y_k = y_k + deltaY;
+	x_k += h2;
+	Y2.push_back(y_k);			
+	deltaZ = h1 * this->_FuncExpression(x_k, y_k);
+	log << "Runge-Romberg" << endl;
+	log << "\tx\t\ty\t\ty*\t\terr" << endl;
+	y_k = y0;
+	for (size_t i = 0; i < min(Y1.size(), Y2.size()); ++i) {
+		y_k = Y1[i] + (Y1[i] - Y2[i]);
+		log << i << "\t" << X[i] << "\t\t" << Y1[i] << "\t\t" 
+			<< y_k << "\t\t" << fabs(Y1[i] - Y2[i]) << endl;
+	}
+}
+
+void TMethodAdams::ToSolve() {
+	double x0 = this->_a, y0 = this->_funcY0, z0 = this->_funcZ0;
+	size_t N = (this->_b - this->_a) / this->_h;
+	double K1, K2, K3, K4, L1, L2, L3, L4;
+	log << "h = " << this->_h << "; N = " << N << endl;
+	double y_k = y0;
+	double x_k = x0;
+	double z_k = z0;
+	double deltaZ, deltaY;
+	out.precision(5);
+	log.precision(5);
+	log.width(10);
+	vector<double> X, Y, Z;
+	out << "\tx\ty" << endl;
+	log << "\tx\t\ty\t\tz\t\td(y)\t\td(z)\t\ty(true)\t\teps\t\terr" << endl;
+	size_t sz = min((size_t)4, N);
+	for (size_t k = 0; k < sz; ++k) {
+		L1 = this->_h * this->_FuncExpression(x_k, y_k);
+		K1 = this->_h * z_k;		
+		//log << fixed << k << "/" << 1 << "\t" << x_k << "\t" << y_k << "\t" << K1 << "\t\t\t\t" 
+		//	<< this->_FuncY(x_k) << "\t" << fabs(this->_FuncY(x_k) - y_k) << endl;		
+		K2 = this->_h * (z_k + 0.5 * L1);
+		L2 = this->_h * this->_FuncExpression(x_k + 0.5 * this->_h, y_k + 0.5 * K1);
+		//log << fixed << k << "/" << 2 << "\t" << x_k + 0.5 * this->_h << "\t" << y_k + 0.5 * K1 << "\t" << K2 << endl;
+		K3 = this->_h * (z_k + 0.5 * L2);
+		L3 = this->_h * this->_FuncExpression(x_k + 0.5 * this->_h, y_k + 0.5 * K2);
+		//log << fixed << k << "/" << 3 << "\t" << x_k + 0.5 * this->_h << "\t" << y_k + 0.5 * K2 << "\t" << K3 << endl;
+		K4 = this->_h * (z_k + L3);
+		L4 = this->_h * this->_FuncExpression(x_k + this->_h, y_k + K3);
+		deltaY = 1.0 / 6.0 * (K1 + 2.0 * K2 + 2.0 * K3 + K4);
+		deltaZ = 1.0 / 6.0 * (L1 + 2.0 * L2 + 2.0 * L3 + L4);
+		//log << fixed << k << "/" << 4 << "\t" << x_k + this->_h << "\t" << y_k + K3 << "\t" << K4 
+		//	<< "\t" << delta << "\t" << fabs((K2 - K3) / (K1 - K2)) << endl;
+		out << fixed << k << "\t" << x_k << "\t" << y_k << endl;
+		log << fixed << k << "\t" << x_k << "\t\t" << y_k << "\t\t" << z_k 
+			<< "\t\t" << deltaY << "\t\t" << deltaZ << "\t\t" << this->_FuncY(x_k) 
+			<< "\t\t" << fabs(this->_FuncY(x_k) - y_k) << "\t\t" << fabs((K2 - K3) / (K1 - K2)) << endl;
+		Y.push_back(y_k);
+		X.push_back(x_k);
+		Z.push_back(z_k);			
+		x_k += this->_h;
+		z_k += deltaZ;
+		y_k += deltaY;		
+	}		
+	x_k -= this->_h;
+	y_k -= deltaY;
+	z_k -= deltaZ;
+	for (size_t k = sz - 1; k < N; ++k) {
+		z_k = z_k + this->_h / 24.0 * (55.0 * this->_FuncExpression(X[k], Y[k]) 
+				- 59.0 * this->_FuncExpression(X[k - 1], Y[k - 1]) + 37.0 * this->_FuncExpression(X[k - 2], Y[k - 2]) 
+				- 9.0 * this->_FuncExpression(X[k - 3], Y[k - 3]));
+		y_k = y_k + this->_h * z_k;
+		x_k += this->_h;
+		log << fixed << k + 1 << "\t" << x_k << "\t\t" << y_k << "\t\t" << z_k 
+			<< "\t\t" << deltaY << "\t\t" << deltaZ << "\t\t" << this->_FuncY(x_k) 
+			<< "\t\t" << fabs(this->_FuncY(x_k) - y_k) << endl;
+		out << fixed << "\t" << x_k << "\t" << y_k << endl;			
+		Y.push_back(y_k);
+		X.push_back(x_k);
+		Z.push_back(z_k);
+	}	
+}
+
+void TMethodAdams::RungeRomberg() {
+	double x0 = this->_a, y0 = this->_funcY0, z0 = this->_funcZ0;
+	double h1 = this->_h;
+	double h2 = h1 / 2;
+	size_t N1 = (this->_b - this->_a) / h1;
+	size_t N2 = (this->_b - this->_a) / h2;
+	double K1, K2, K3, K4, L1, L2, L3, L4;
+	log << "h1 = " << h1 << "; N1 = " << N1 << endl;
+	log << "h2 = " << h2 << "; N2 = " << N2 << endl;
+	double y_k = y0;
+	double x_k = x0;
+	double z_k = z0;
+	double deltaZ, deltaY;
+	out.precision(5);
+	log.precision(5);
+	log.width(10);
+	vector<double> X, Y, Z;
+	size_t sz = min((size_t)4, N1);
+	for (size_t k = 0; k < sz; ++k) {
+		L1 = h1 * this->_FuncExpression(x_k, y_k);
+		K1 = h1 * z_k;		
+		K2 = h1 * (z_k + 0.5 * L1);
+		L2 = h1 * this->_FuncExpression(x_k + 0.5 * h1, y_k + 0.5 * K1);
+		K3 = h1 * (z_k + 0.5 * L2);
+		L3 = h1 * this->_FuncExpression(x_k + 0.5 * h1, y_k + 0.5 * K2);
+		K4 = h1 * (z_k + L3);
+		L4 = h1 * this->_FuncExpression(x_k + h1, y_k + K3);
+		deltaY = 1.0 / 6.0 * (K1 + 2.0 * K2 + 2.0 * K3 + K4);
+		deltaZ = 1.0 / 6.0 * (L1 + 2.0 * L2 + 2.0 * L3 + L4);
+		Y.push_back(y_k);
+		X.push_back(x_k);
+		Z.push_back(z_k);			
+		x_k += h1;
+		z_k += deltaZ;
+		y_k += deltaY;		
+	}		
+	x_k -= h1;
+	y_k -= deltaY;
+	z_k -= deltaZ;
+	for (size_t k = sz - 1; k < N1; ++k) {
+		z_k = z_k + h1 / 24.0 * (55.0 * this->_FuncExpression(X[k], Y[k]) 
+				- 59.0 * this->_FuncExpression(X[k - 1], Y[k - 1]) + 37.0 * this->_FuncExpression(X[k - 2], Y[k - 2]) 
+				- 9.0 * this->_FuncExpression(X[k - 3], Y[k - 3]));
+		y_k = y_k + h1 * z_k;
+		x_k += h1;
+		Y.push_back(y_k);
+		X.push_back(x_k);
+		Z.push_back(z_k);
+	}
+
+	vector<double> X2, Y2;
+	y_k = y0;
+	x_k = x0;
+	z_k = z0;
+	sz = min((size_t)4, N2);
+	for (size_t k = 0; k < sz; ++k) {
+		L1 = h2 * this->_FuncExpression(x_k, y_k);
+		K1 = h2 * z_k;		
+		K2 = h2 * (z_k + 0.5 * L1);
+		L2 = h2 * this->_FuncExpression(x_k + 0.5 * h2, y_k + 0.5 * K1);
+		K3 = h2 * (z_k + 0.5 * L2);
+		L3 = h2 * this->_FuncExpression(x_k + 0.5 * h2, y_k + 0.5 * K2);
+		K4 = h2 * (z_k + L3);
+		L4 = h2 * this->_FuncExpression(x_k + h2, y_k + K3);
+		deltaY = 1.0 / 6.0 * (K1 + 2.0 * K2 + 2.0 * K3 + K4);
+		deltaZ = 1.0 / 6.0 * (L1 + 2.0 * L2 + 2.0 * L3 + L4);
+		Y2.push_back(y_k);
+		X2.push_back(x_k);
+		x_k += h2;
+		z_k += deltaZ;
+		y_k += deltaY;		
+	}		
+	x_k -= h2;
+	y_k -= deltaY;
+	z_k -= deltaZ;
+	for (size_t k = sz - 1; k < N2; ++k) {
+		z_k = z_k + h2 / 24.0 * (55.0 * this->_FuncExpression(X2[k], Y2[k]) 
+				- 59.0 * this->_FuncExpression(X2[k - 1], Y2[k - 1]) + 37.0 * this->_FuncExpression(X2[k - 2], Y2[k - 2]) 
+				- 9.0 * this->_FuncExpression(X2[k - 3], Y2[k - 3]));
+		y_k = y_k + h2 * z_k;
+		x_k += h2;
+		Y2.push_back(y_k);
+		X2.push_back(x_k);
+	}
+	log << "Runge-Romberg" << endl;
+	log << "\tx\t\ty\t\ty*\t\terr" << endl;
+	for (size_t i = 0, j = 0; i < Y.size() && j < Y2.size(); ++i, j += 2) {
+		y_k = Y[i] + (Y[i] - Y2[j]) / 15;
+		log << i << "\t" << X[i] << "\t\t" << Y[i] << "\t\t" 
+			<< y_k << "\t\t" << fabs(Y[i] - Y2[j]) / 15 << endl;
+
+	}
+
+}
+\end{lstlisting}
+\vspace{0.5cm}
+
+\textbf{Тестирование}\\
+
+\textbf{Выходной файл}
+\begin{verbatim}
+Метод 1: Метод Эйлера
+	x	y	z
+0	0.00000	3.00000	0.00000
+1	0.10000	3.00000	0.60000
+2	0.20000	3.06000	1.20404
+3	0.30000	3.18040	1.83269
+4	0.40000	3.36367	2.50816
+5	0.50000	3.61449	3.25600
+6	0.60000	3.94009	4.10730
+7	0.70000	4.35082	5.10172
+8	0.80000	4.86099	6.29182
+9	0.90000	5.49017	7.74952
+10	1.00000	6.26513	9.57587
+
+h = 0.1; N = 10
+	x	y	z		d(z)		d(y)		y(true)		eps
+0	0.00000	3.00000	0.00000		0.60000		0.00000		3.00000		0.00000
+1	0.10000	3.00000	0.60000		0.60404		0.00000		3.03008		0.03008
+2	0.20000	3.06000	1.20404		0.62865		0.06000		3.12135		0.06135
+3	0.30000	3.18040	1.83269		0.67547		0.12040		3.27689		0.09649
+4	0.40000	3.36367	2.50816		0.74784		0.18327		3.50214		0.13846
+5	0.50000	3.61449	3.25600		0.85130		0.25082		3.80521		0.19072
+6	0.60000	3.94009	4.10730		0.99442		0.32560		4.19758		0.25749
+7	0.70000	4.35082	5.10172		1.19010		0.41073		4.69501		0.34419
+8	0.80000	4.86099	6.29182		1.45770		0.51017		5.31897		0.45798
+9	0.90000	5.49017	7.74952		1.82636		0.62918		6.09877		0.60859
+10	1.00000	6.26513	9.57587						7.07465		0.80952
+h1 = 0.10000; N1 = 10
+h2 = 0.05000; N2 = 20
+Runge-Romberg
+	x		y		y*		err
+0	0.00000		3.00000		3.00000		0.00000
+1	0.10000		3.00000		2.95497		0.04503
+2	0.20000		3.06000		2.96912		0.09088
+3	0.30000		3.18040		3.04046		0.13995
+4	0.40000		3.36367		3.16888		0.19479
+5	0.50000		3.61449		3.35608		0.25841
+6	0.60000		3.94009		3.60564		0.33445
+7	0.70000		4.35082		3.92324		0.42758
+8	0.80000		4.86099		4.31702		0.54397
+9	1.00000		6.26513		5.89139		0.37374
+
+Метод 2: Метод Рунге-Кутты
+	x	y
+0	0.00000	3.00000
+1	0.10000	3.03008
+2	0.20000	3.12134
+3	0.30000	3.27689
+4	0.40000	3.50213
+5	0.50000	3.80520
+6	0.60000	4.19757
+7	0.70000	4.69499
+8	0.80000	5.31895
+9	0.90000	6.09873
+10	1.00000	7.07459
+
+h = 0.1; N = 10
+	x	y	z		d(y)		d(z)		y(true)		eps		err
+0	0.00000	3.00000	0.00000		0.03008		0.60334		3.00000		0.00000		0.00167
+*************************************************************************************************
+1	0.10000	3.03008	0.60334		0.09126		0.62369		3.03008		0.00000		0.01836
+*************************************************************************************************
+2	0.20000	3.12134	1.22703		0.15554		0.66579		3.12135		0.00000		0.03468
+*************************************************************************************************
+3	0.30000	3.27689	1.89283		0.22524		0.73269		3.27689		0.00000		0.05027
+*************************************************************************************************
+4	0.40000	3.50213	2.62551		0.30307		0.82939		3.50214		0.00000		0.06490
+*************************************************************************************************
+5	0.50000	3.80520	3.45490		0.39237		0.96363		3.80521		0.00001		0.07858
+*************************************************************************************************
+6	0.60000	4.19757	4.41853		0.49742		1.14697		4.19758		0.00001		0.09144
+*************************************************************************************************
+7	0.70000	4.69499	5.56550		0.62396		1.39656		4.69501		0.00002		0.10375
+*************************************************************************************************
+8	0.80000	5.31895	6.96207		0.77978		1.73799		5.31897		0.00003		0.11576
+*************************************************************************************************
+9	0.90000	6.09873	8.70006		0.97587		2.20969		6.09877		0.00004		0.12773
+*************************************************************************************************
+10	1.00000	7.07459	10.90974					7.07465		0.00006		0.12773
+
+Метод 3: Метод Адамса
+	x	y
+0	0.00000	3.00000
+1	0.10000	3.03008
+2	0.20000	3.12134
+3	0.30000	3.27689
+4	0.40000	3.53938
+5	0.50000	3.88644
+6	0.60000	4.33164
+7	0.70000	4.89469
+8	0.80000	5.60194
+9	0.90000	6.48933
+10	1.00000	7.60628
+
+h = 0.1; N = 10
+	x		y		z		d(y)		d(z)		y(true)		eps		err
+0	0.00000		3.00000		0.00000		0.03008		0.60334		3.00000		0.00000		0.00167
+1	0.10000		3.03008		0.60334		0.09126		0.62369		3.03008		0.00000		0.01836
+2	0.20000		3.12134		1.22703		0.15554		0.66579		3.12135		0.00000		0.03468
+3	0.30000		3.27689		1.89283		0.22524		0.73269		3.27689		0.00000		0.05027
+4	0.40000		3.53938		2.62491		0.22524		0.73269		3.50214		0.03724
+5	0.50000		3.88644		3.47058		0.22524		0.73269		3.80521		0.08123
+6	0.60000		4.33164		4.45205		0.22524		0.73269		4.19758		0.13406
+7	0.70000		4.89469		5.63045		0.22524		0.73269		4.69501		0.19968
+8	0.80000		5.60194		7.07257		0.22524		0.73269		5.31897		0.28297
+9	0.90000		6.48933		8.87382		0.22524		0.73269		6.09877		0.39056
+10	1.00000		7.60628		11.16951		0.22524		0.73269		7.07465		0.53163
+h1 = 0.10000; N1 = 10
+h2 = 0.05000; N2 = 20
+Runge-Romberg
+	x		y		y*		err
+0	0.00000		3.00000		3.00000		0.00000
+1	0.10000		3.03008		3.03008		0.00000
+2	0.20000		3.12134		3.12082		0.00053
+3	0.30000		3.27689		3.27522		0.00166
+4	0.40000		3.53938		3.53891		0.00047
+5	0.50000		3.88644		3.88738		0.00094
+6	0.60000		4.33164		4.33426		0.00262
+7	0.70000		4.89469		4.89938		0.00469
+8	0.80000		5.60194		5.60928		0.00734
+9	0.90000		6.48933		6.50009		0.01077
+10	1.00000		7.60628		7.62157		0.01530
+\end{verbatim}
+
+\pagebreak

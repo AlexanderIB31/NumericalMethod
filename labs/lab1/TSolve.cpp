@@ -34,7 +34,7 @@ TFRFF* TSolve::_readFromFile(const string& path, TypeProblem tP) {
                 matr[i][i] = 0.0;
             }
         }
-        if (tP != Gauss && tP != TripleDiagMatrix)
+        else if (tP != Gauss && tP != TripleDiagMatrix)
             cerr << "This type of problem is not found" << endl;
         return new TFRFF(matr, vec);
     }
@@ -65,8 +65,8 @@ void TSolve::_clear() {
 }
 
 TVector TSolve::_solveAx_is_b(const TMatrix& mL, 
-                            const TMatrix& mU, 
-                            const TVector& vB) {
+                              const TMatrix& mU, 
+                              const TVector& vB) {
     int tmpSz = vB.GetSize();    
 	TVector z(tmpSz);
     TVector x(tmpSz);
@@ -88,7 +88,6 @@ TVector TSolve::_solveAx_is_b(const TMatrix& mL,
     z.Clear();
     return x;
 }
-
 
 void TSolve::_findSolve(double P, double Q, int n, TVector& x, ofstream& log) {
     if (n == x.GetSize()) {
@@ -135,7 +134,7 @@ int TSolve::ToSolveBySimpleIterations() {
     log << "|Method Simple Iterations| by Alexander Bales 80-308" << endl << endl;
     log << "|A| = " << _matrA.GetNorm() << endl << endl;
     _vecX = _vecB;    
-    TVector vecRes = _vecX + _matrA * _vecX;    
+    TVector vecRes = _vecX + (_matrA * _vecX.Rotate()).Rotate();    
     _vecB.Print(log, "B");    
     _matrA.Print(log, "A");    
     double tmp = abs(_matrA.GetNorm());
@@ -145,7 +144,7 @@ int TSolve::ToSolveBySimpleIterations() {
         log << "x_" << i - 1 << " = (";
         _vecX.Print(log);
         log << "); ";	    
-        vecRes = _vecB + _matrA * _vecX;
+        vecRes = _vecB + (_matrA * _vecX.Rotate()).Rotate();
         log << "x_" << i << " = (";
         vecRes.Print(log);
         log << "); ";

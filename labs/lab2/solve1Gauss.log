@@ -1,0 +1,14 @@
+|Method Gauss (LUP)| by Alexander Bales 80-308
+
+Matrix L:
+1 0 
+0.52939 1 
+
+Matrix U:
+14.8586 51.2005 
+0 -28.6007 
+
+Matrix A * A^(-1):
+1 0 
+-4.85723e-17 1 
+

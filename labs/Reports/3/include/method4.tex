@@ -1,0 +1,111 @@
+\textbf{Метод 4 --- Численное дифференцирование}\\
+
+\textbf{Задание}
+
+Вычислить первую и вторую производную от таблично заданной функции $y_i=f(x_i), i=0,1,2,3,4$ в точке $x=X^*$.\\
+
+\textbf{Вариант:} 3
+
+$X^*=2.0$\\
+\begin{tabular}{|c|c|c|c|c|c|}
+\hline
+i & 0 & 1 & 2 & 3 & 4 \\
+\hline
+$x_i$ & 1.0 & 1.5 & 2.0 & 2.5 & 3.0 \\
+\hline
+$y_i$ & 0.0 & 0.40547 & 0.69315 & 0.91629 & 1.0986 \\
+\hline
+\end{tabular}
+\vspace{0.5cm}
+
+\textbf{Описание алгоритма}
+
+Формулы численного дифференцирования в основном используется при нахождении производных от функции $y=f(x)$, заданной таблично. Исходная функция $y_i=f(x_i), i=0,1,...,M$ на отрезках $[x_j, x_{j+k}]$ заменяется некоторой приближающей, легко вычисляемой функцией $\varphi(x,\overline{a}), y=\varphi(x,\overline{a})+R(x)$, где $R(x)$ --- остаточный член приближения, $\overline{a}$ --- набор коэффициентов. Наиболее часто в качестве приближающей функции $\varphi(x,\overline{a})$ берется интерполяционный многочлен $\varphi(x,\overline{a})=P_n(x)=\sum\limits_{i=0}^na_ix^i$, а производные соответствующих порядков определяются дифференцированием многочлена.
+
+Первая производная:
+
+$$
+y'(x) \approx \varphi'(x)=\frac{y_{i+1}-y_i}{x_{i+1}-x_i}+\frac{\frac{y_{i+2}-y_{i+1}}{x_{i+2}-x_{i+1}}-\frac{y_{i+1}-y_i}{x_{i+1}-x_i}}{x_{i+2}-x_i}(2x-x_i-x_{i+1}), x \in [x_i, x_{i+1}]
+$$
+
+Вторая производная:
+
+$$
+y''(x) \approx \varphi''(x)=2\frac{\frac{y_{i+2}-y_{i+1}}{x_{i+2}-x_{i+1}}-\frac{y_{i+1}-y_i}{x_{i+1}-x_i}}{x_{i+2}-x_i}, x \in [x_i, x_{i+1}]
+$$\\
+
+\textbf{Реализация}
+\begin{lstlisting}
+#include <iostream>
+#include <functional>
+#include <fstream>
+#include <vector>
+
+using namespace std;
+
+int main(int argc, char* argv[]) {
+	auto firstDerivative2 = [](const vector<double>& Y, const vector<double>& X, int pos, double x) -> double {
+		if (pos >= Y.size() - 2) return 0;
+		return (Y[pos + 1] - Y[pos]) / (X[pos + 1] - X[pos]) + 
+			((Y[pos + 2] - Y[pos + 1]) / (X[pos + 2] - X[pos + 1]) - (Y[pos + 1] - Y[pos]) / (X[pos + 1] - X[pos])) 
+				/ (X[pos + 2] - X[pos]) * (2 * x - X[pos] - X[pos + 1]);
+	};
+	auto secondDerivative2 = [](const vector<double>& Y, const vector<double>& X, int pos, double x) -> double {
+		if (pos >= Y.size() - 2) return 0;
+		return 2 * ((Y[pos + 2] - Y[pos + 1]) / (X[pos + 2] - X[pos + 1]) 
+				- (Y[pos + 1] - Y[pos]) / (X[pos + 1] - X[pos])) 
+			/ (X[pos + 2] - X[pos]);
+	};
+
+	if (argc != 2) {
+		cerr << "Error: arg is incorrect" << endl;
+		exit(-1);
+	}
+
+	string dataFile = argv[1];
+	vector<double> X, Y;
+	size_t N;
+	double temp, perfectX;
+	ifstream in(dataFile, ios::in);
+
+	in >> N;
+	for (size_t i = 0; i < N; ++i) {
+		in >> temp;
+		X.push_back(temp);
+	}
+	for (size_t i = 0; i < N; ++i) {
+		in >> temp;
+		Y.push_back(temp);
+	}
+	in >> perfectX;
+	in.close();
+
+	for (size_t i = 0; i < N - 1; ++i) {
+		if (X[i] <= perfectX && perfectX <= X[i + 1]) {
+			cout << "F'(x) = " << firstDerivative2(Y, X, i, perfectX) << endl;
+			cout << "F\"(x) = " << secondDerivative2(Y, X, i, perfectX) << endl;
+			break;
+		}
+	}
+	return 0;
+}
+\end{lstlisting}
+\vspace{0.5cm}
+
+\textbf{Тестирование}\\
+
+\textbf{Входной файл}
+\begin{verbatim}
+5
+1.0 1.5 2.0 2.5 3.0
+0.0 0.40547 0.69315 0.91629 1.0986
+2.0
+\end{verbatim}
+
+\textbf{Выходной файл}
+\begin{verbatim}
+F'(x) = 0.51082
+F"(x) = -0.25816
+\end{verbatim}
+
+\pagebreak

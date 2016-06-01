@@ -1,0 +1,182 @@
+\textbf{Метод 5 --- Численное интегрирование}\\
+
+\textbf{Задание}
+
+Вычислить определенный интеграл $F=\int\limits_{X_0}^{X_1}ydx$, методами прямоугольников, трапеций, Симпсона с шашами $h_1, h_2$. Оценить погрешность вычислений, используя метод Рунге-Ромберга.\\
+
+\textbf{Вариант:} 3
+
+$y=\frac{x}{(3x+4)^3}, \quad X_0=-1, X_k=1, h_1=0.5, h_2=0.25$\\
+
+\textbf{Описание алгоритма}
+
+Формулы численного интегрирования используются в тех случаях, когда вычислить аналитически интеграл $F=\int\limits_{a}^bf(x)dx$ не удается. Отрезок $[a, b]$ разбивают точками $x_0,...,x_N$ так, что $a=x_0 \leq x_1 \leq ... \leq x_N=b$ с достаточно мелким шагом $h_i=x_i-x_{i-1}$ и на одном или нескольких отрезках $h_i$ подынтегральную функцию $f(x)$ заменяют такой приближающей $\varphi(x)$ так, что она, во--первых, близка $f(x)$, а, во--вторых, интеграл от $\varphi(x)$ легко вычисляется.
+
+Заменим подынтегральную функцию интерполяционным многочленом Лагранжа нулевой степени, проходящим через середину отрезка --- точку $\overline{x_i}=(x_{i-1}+x_i)/2$, получим формулу прямоугольников:
+
+$$
+\int\limits_{a}^bf(x)dx \approx \sum\limits_{i=1}^Nh_if(\frac{x_{i-1}+x_i}{2})
+$$
+
+В случае таблично заданных функций удобно в качестве узлов интерполяции выбрать начало и конец отрезка интегрирования, т.е. заменить функцию $f(x)$ многочленом Лагранжа первой степени. В результате получим формулу трапеций:
+
+$$
+\int\limits_{a}^bf(x)dx \approx \frac{1}{2}\sum\limits_{i=1}^N(f_i+f_{i-1})h_i
+$$
+
+Для повышения порядка точности формулы численного интегрирования заменим подынтегральную кривую параболой --- интерполяционным многочленом второй степени, выбрав в качестве узлов интерполяции концы и середину отрезка интегрирования: $x_{i-1}, x_{i-\frac{1}{2}}=(x_{i-1}+x_i)/2, x_i$\\
+
+Для случая $h_i=\frac{x_i-x_{i-1}}{2}$, получим формулу Симпсона (парабол):
+
+$$
+\int\limits_{a}^bf(x)dx \approx \frac{1}{3}\sum\limits_{i=1}^N(f_{i-1}+4f_{i-\frac{1}{2}}+f_i)h_i
+$$
+
+В случае интегрирования с постоянным шагом формулы принимают следующий вид:\\
+
+Метод прямоугольников
+
+$$
+F=h[y(\frac{x_0+x_1}{2})+y(\frac{x_1+x_2}{2})+...+y(\frac{x_{N-1}+x_N}{2})]
+$$
+
+Метод Трапеций
+
+$$
+F=h[\frac{y_0}{2}+y_1+y_2+...+y_{N-1}+\frac{y_N}{2}]
+$$
+
+Метод Симпсона
+
+$$
+F=\frac{h}{3}[y_0+4y_1+2y_2+4y_3+2y_4+...+2y_{N-2}+4y_{N-1}+y_N]
+$$\\
+
+\textbf{Реализация}
+\begin{lstlisting}
+#include <iostream>
+#include <fstream>
+#include <functional>
+#include <cmath>
+
+using namespace std;
+
+int main(int argc, char* argv[]) {
+	if (argc != 2) {
+		cerr << "Error: arg is incorrect" << endl;
+		exit(-1);
+	}
+
+	string dataFile = argv[1];
+	double h1, h2, X1, Xn;
+	
+	ifstream in(dataFile, ios::in);
+	in >> X1 >> Xn >> h1 >> h2;
+	in.close();
+
+	auto Y = [](double x) -> double {
+		return x / pow(3 * x + 4, 3.0);
+	};
+
+	auto secondDerivateY = [](double x) -> double {
+		return 18 * (3 * x - 4) / pow(3 * x + 4, 5.0);
+	};
+
+	auto fourthDerivateY = [](double x) -> double {
+		return 3240 * (3 * x - 8) / pow(3  * x + 4, 7.0);
+	};
+
+	double M2_h1 = 0.0, M2_h2 = 0.0, M4_h1 = 0.0, M4_h2 = 0.0;
+
+	for (double cur = X1; cur <= Xn; cur += h1) {
+		M2_h1 = max(M2_h1, abs(secondDerivateY(cur)));
+		M4_h1 = max(M4_h1, abs(fourthDerivateY(cur)));
+	}
+	for (double cur = X1; cur <= Xn; cur += h2) {
+		M2_h2 = max(M2_h2, abs(secondDerivateY(cur)));
+		M4_h2 = max(M4_h2, abs(fourthDerivateY(cur)));		
+	}
+
+	auto rectangleMethod = [&Y](double startX, double endX, double step) -> double {		
+		double res = 0.0;
+		for (double cur = startX + step; cur <= endX; cur += step) {
+			res += Y(0.5 * (2 * cur - step));
+		}
+		return step * res;
+	};
+
+//	auto estimateRectangleMethod = [](double startX, double endX, double step, double M) -> double {
+//		return step * step * M * (endX - startX) / 24;
+//	};
+
+	auto trapezoidalMethod = [&Y](double startX, double endX, double step) -> double {
+		double res = 0.0;
+		for (double cur = startX + step; cur <= endX; cur += step) {
+			res += Y(cur) + Y(cur - step);
+		}
+		return 0.5 * step * res;
+	};
+
+//	auto estimateTrapezoidalMethod = [](double startX, double endX, double step, double M) -> double {
+//		return step * step * M * (endX - startX) / 12;
+//	};
+
+	auto SimpsonMethod = [&Y](double startX, double endX, double step) -> double {
+		double res = 0.0;
+		res += Y(startX) + Y(endX);
+		for (double cur = startX + step; cur < endX; cur += 2 * step) {
+			res += 4 * Y(cur);
+		}
+		for (double cur = startX + 2 * step; cur < endX; cur += 2 * step) {
+			res += 2 * Y(cur);
+		}
+		return step * res / 3;
+	};
+
+//	auto estimateSimpsonMethod = [](double startX, double endX, double step, double M) -> double {
+//		return (endX - startX) * pow(step, 4.0) * M / 180;
+//	};
+
+	double k = max(h1, h2) / min(h1, h2);
+
+	cout << "Rectangle method (h1): " << rectangleMethod(X1, Xn, h1) << endl;
+	cout << "Rectangle method (h2): " << rectangleMethod(X1, Xn, h2) << endl;
+	cout << "estimate: ";
+	if (h1 >= h2) cout << rectangleMethod(X1, Xn, h2) + (rectangleMethod(X1, Xn, h2) - rectangleMethod(X1, Xn, h1)) / (pow(k, 2.0) - 1.0) << endl;
+	else cout << rectangleMethod(X1, Xn, h1) + (rectangleMethod(X1, Xn, h1) - rectangleMethod(X1, Xn, h2)) / (pow(k, 2.0) - 1.0) << endl;
+	cout << "Trapezoidal method (h1): " << trapezoidalMethod(X1, Xn, h1) << endl;
+	cout << "Trapezoidal method (h2): " << trapezoidalMethod(X1, Xn, h2) << endl;
+	cout << "estimate: ";	
+	if (h1 >= h2) cout << trapezoidalMethod(X1, Xn, h2) + (trapezoidalMethod(X1, Xn, h2) - trapezoidalMethod(X1, Xn, h1)) / (pow(k, 2.0) - 1.0) << endl;
+	else cout << trapezoidalMethod(X1, Xn, h1) + (trapezoidalMethod(X1, Xn, h1) - trapezoidalMethod(X1, Xn, h2)) / (pow(k, 2.0) - 1.0) << endl;
+	cout << "Simpson method (h1): " << SimpsonMethod(X1, Xn, h1) <<  endl;	
+	cout << "Simpson method (h2): " << SimpsonMethod(X1, Xn, h2) <<  endl;	
+	cout << "estimate: ";	
+	if (h1 >= h2) cout << SimpsonMethod(X1, Xn, h2) + (SimpsonMethod(X1, Xn, h2) - SimpsonMethod(X1, Xn, h1)) / (pow(k, 4.0) - 1.0) << endl;
+	else cout << SimpsonMethod(X1, Xn, h1) + (SimpsonMethod(X1, Xn, h1) - SimpsonMethod(X1, Xn, h2)) / (pow(k, 4.0) - 1.0) << endl;	
+	return 0;
+}
+\end{lstlisting}
+\vspace{0.5cm}
+
+\textbf{Тестирование}\\
+
+\textbf{Входной файл}
+\begin{verbatim}
+-1 1 0.5 0.25
+\end{verbatim}
+
+\textbf{Выходной файл}
+\begin{verbatim}
+Rectangle method (h1): -0.0709098
+Rectangle method (h2): -0.102439
+Runge-Romberg estimate: 0.112949
+Trapezoidal method (h1): -0.263769
+Trapezoidal method (h2): -0.167339
+Runge-Romberg estimate: 0.135196
+Simpson method (h1): -0.185511
+Simpson method (h2): -0.135196
+Runge-Romberg estimate: 0.131842
+\end{verbatim}
+
+\pagebreak

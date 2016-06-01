@@ -1,0 +1,172 @@
+\textbf{Метод 2 --- Метод прогонки}\\
+
+\textbf{Задание}
+
+Реализовать метод прогонки в виде программы, задавая в качестве входных данных ненулевые элементы матрицы системы и вектор правых частей. Используя разработанное программное обеспечение, решить СЛАУ с трехдиагональной матрицей.\\
+
+\textbf{Вариант:} 3
+
+$
+\begin{cases}
+13x_1-5x_2=-66\\
+4x_1+9x_2-5x_3=-47\\
+-x_2-12x_3-6x_4=-43\\
+6x_3+20x_4-5x_5=-74\\
+4x_4+5x_5=14
+\end{cases}
+$
+\vspace{0.5cm}
+
+\textbf{Описание алгоритма}
+
+Метод прогонки является одним из эффективных методов решения СЛАУ с трех--диагональными матрицами, возникающих при конечно--разностной аппроксимации задач для обыкновенных дифференциальных уравнений (ОДУ) и уравнений в частных производных второго порядка и является частным случаем метода Гаусса. Рассмотрим следующую СЛАУ:\\
+
+$
+\begin{cases}
+a_1=0\\
+b_1x_1+c_1x_2=d_1\\
+a_2x_1+b_2x_2+c_2x_3=d_2\\
+a_3x_2+b_3x_3+c_3x_4=d_3\\
+...\\
+a_{n-1}x_{n-2}+b_{n-1}x_{n-1}+c_{n-1}x_n=d_{n-1}\\
+a_nx_{n-1}+b_nx_n=d_n\\
+c_n=0
+\end{cases}
+$\\
+
+решение которой будем искать в виде:
+
+\begin{equation}
+x_i=P_ix_{i+1}+Q_i, i=\overline{1,n}
+\end{equation}
+
+где $P_i, Q_i, i=\overline{1,n}$ --- прогоночные коэффициенты, подлежащие определению.
+
+$$
+P_i=\frac{-c_i}{b_i+a_iP_{i-1}}, Q_i=\frac{d_i-a_iQ_{i-1}}{b_i+a_iP_{i-1}}, i=\overline{2,n-1}
+$$
+
+$$
+P_1=\frac{-c_1}{b_1}, Q_1=\frac{d_1}{b_1}, i=1
+$$
+
+$$
+P_n=0, Q_n=\frac{d_n-a_nQ_{n-1}}{b_n+a_nP_{n-1}}, i=n
+$$
+
+Обратный ход метода прогонки осуществляется в соответствии с выражением (1):
+
+$$
+\begin{cases}
+x_n=P_nx_{n+1}+Q_n=0 \cdot x_{n+1}+Q_n=Q_n\\
+x_{n-1}=P_{n-1}x_n+Q_{n-1}\\
+...\\
+x_1=P_1x_2+Q_1
+\end{cases}
+$$\\
+
+Общее число операций в методе прогонки равно $8n+1$, т.е. пропорционально числу уравнений. Такие методы решения СЛАУ называют \textit{экономичными}. Для сравнения число операций в методе Гаусса пропорционально $n^3$.\\
+
+Для устойчивости метода прогонки достаточно выполнение следующих условий:
+
+$$
+a_i \neq 0, c_i \neq 0, i=\overline{2,n-1}
+$$
+
+$$
+|b_i| \geq |a_i|+|c_i|, i=\overline{1,n}
+$$\\
+
+\textbf{Реализация}
+
+\begin{lstlisting}
+int TSolve::ToSolveByTripleDiagMatrix() {
+    TFRFF* tmpRead = _readFromFile(pathFrom, TripleDiagMatrix);
+    if (tmpRead == NULL)
+        return -1;
+    _matrA.SetLink(tmpRead->matr);
+    _vecB.SetLink(tmpRead->vec);
+    ofstream log("solve1TripleDiagMatrix.log", ios::out);
+    log << "|Method TripleDiagMatrix| by Alexander Bales 80-308" << endl << endl;
+    double P, Q;
+    try {
+        P = -_matrA[0][1] / _matrA[0][0];
+        Q = _vecB[0] / _matrA[0][0];            
+    }
+    catch (const out_of_range& e) {
+        cerr << "Out of range: " << e.what() << endl;
+    }
+    _vecX = _vecB;    
+    _findSolve(P, Q, 1, _vecX, log);        
+    _writeToFile(pathTo);
+    _clear();
+    delete tmpRead; 
+    return 0;
+}
+
+void TSolve::_findSolve(double P, double Q, int n, TVector& x, ofstream& log) {
+    if (n == x.GetSize()) {
+        x[n - 1] = Q;
+        log << "P_" << n << " = " << 0 << endl;
+        log << "Q_" << n << " = " << Q << endl;
+    } else {
+        try {
+            _findSolve(-_matrA[n][2] / (_matrA[n][0] * P + _matrA[n][1]),
+                        (_vecB[n] - _matrA[n][0] * Q) / (_matrA[n][0] * P + _matrA[n][1]),
+                        n + 1, x, log);
+            log << "P_" << n << " = " << P << endl;
+            log << "Q_" << n << " = " << Q << endl;
+            x[n - 1] = P * x[n] + Q;           
+        }
+        catch (const out_of_range& e) {
+            cerr << e.what() << endl;
+        }
+    }        
+}
+\end{lstlisting}
+\vspace{0.5cm}
+
+\textbf{Тестирование}\\
+
+\textbf{Входной файл}
+\begin{verbatim}
+5
+13 -5 0 -66
+-4 9 5 -47
+-1 -12 -6 -43
+6 20 -5 -74
+0 4 5 14
+\end{verbatim}
+
+\textbf{Выходной файл}
+\begin{verbatim}
+solve1TripleDiagMatrix.log:
+
+|Method TripleDiagMatrix| by Alexander Bales 80-308
+
+P_5 = 0
+Q_5 = 3.5
+P_4 = 0.29722
+Q_4 = -6.03646
+P_3 = -0.529572
+Q_3 = 4.59145
+P_2 = -0.670103
+Q_2 = -9.02062
+P_1 = 0.384615
+Q_1 = -5.07692
+
+res:
+
+Matrix A:
+13 -5 0 
+-4 9 5 
+-1 -12 -6 
+6 20 -5 
+0 4 5 
+
+Vector B = (-66, -47, -43, -74, 14)
+
+Vector X = (-10.4, -13.9, 7.24, -5, 3.5)
+\end{verbatim}
+
+\pagebreak

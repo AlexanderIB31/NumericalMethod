@@ -21,7 +21,7 @@ TVector::TVector(int sz) {
 }
 
 TVector::TVector(const TMatrix& m) {
-    _szRow = 1;
+    _szRow = m.GetSizeRow();
     _szCol = m.GetSizeCol();
     _vec = m.GetVec();   
 }

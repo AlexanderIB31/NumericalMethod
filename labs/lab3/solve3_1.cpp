@@ -19,18 +19,19 @@ void PolynomialLagrange() {
 
 	vector<double> X;
 	// task a)
-	/*
+	
 	X.push_back(0);
 	X.push_back(1.0 * M_PI / 8);
 	X.push_back(2.0 * M_PI / 8);
 	X.push_back(3.0 * M_PI / 8);
-	*/
+	
 	//task b)
+	/*
 	X.push_back(0);
 	X.push_back(1.0 * M_PI / 8);
 	X.push_back(1.0 * M_PI / 3);
 	X.push_back(3.0 * M_PI / 8);
-
+	*/
 	double perfectX = 3.0 * M_PI / 16;
 	double sum = 0.0;
 	for (size_t i = 0; i < 4; ++i) {
@@ -61,18 +62,19 @@ void PolynomialNewtoon() {
 
 	vector<double> X;
 	// task a)
-	/*
+	
 	X.push_back(0);
 	X.push_back(1.0 * M_PI / 8);
 	X.push_back(2.0 * M_PI / 8);
 	X.push_back(3.0 * M_PI / 8);
-	*/
+	
 	//task b)
+	/*
 	X.push_back(0);
 	X.push_back(1.0 * M_PI / 8);
 	X.push_back(1.0 * M_PI / 3);
 	X.push_back(3.0 * M_PI / 8);
-	
+	*/
 
 	double perfectX = 1.5;
 	double sum = 0.0;
